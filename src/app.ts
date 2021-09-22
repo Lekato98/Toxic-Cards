@@ -35,5 +35,3 @@ gameNS.on('connection', (client: Socket) => {
 });
 
 server.listen(3000, () => console.log('server listening to *:3000'));
-
-const inv = new InvalidAction();
