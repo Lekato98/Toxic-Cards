@@ -1,5 +1,14 @@
+import { Game, Action, InvalidAction } from "../game";
 import { State } from "./state";
 
-class RoundStart implements State {
-    
+export class RoundStart implements State {
+    action(context: Game, action: Action, payload?: any): void {
+        switch(action) {
+            case Action.START_ROUND:
+                context.startRoundAction();
+
+            default:
+                throw new InvalidAction;
+        }
+    }
 }

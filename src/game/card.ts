@@ -1,4 +1,4 @@
-import { customAlphabet, customRandom, nanoid } from "nanoid";
+import { nanoid } from "nanoid";
 import { Action } from "./game";
 
 enum CardSuit {
@@ -46,6 +46,13 @@ enum CardColor {
     BLACK = 'black',
 }
 
+export enum CardAbility {
+    SHOW_ONE_HAND_CARD,
+    SHOW_ONE_OTHER_HAND_CARD,
+    EXCHANGE_HAND_WITH_OTHER,
+    NO_ABILITY,
+}
+
 export abstract class CardUtil {
     private static readonly DEFAULT_ID_SIZE = 6;
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
@@ -73,21 +80,21 @@ export abstract class CardUtil {
     /**
      * getAbility
      */
-    public static getActionByRank(rank: CardRank): Action {
+    public static getAbilityByRank(rank: CardRank): CardAbility {
         switch(rank) {
             case CardRank.SEVEN:
             case CardRank.EIGHT:
-                return Action.SHOW_ONE_HAND_CARD;
+                return CardAbility.SHOW_ONE_HAND_CARD;
 
             case CardRank.NINE:
             case CardRank.TEN:
-                return Action.SHOW_ONE_OTHER_HAND_CARD;
+                return CardAbility.SHOW_ONE_OTHER_HAND_CARD;
                 
             case CardRank.JACK:
-                return Action.EXCHANGE_HAND_WITH_OTHER;
+                return CardAbility.EXCHANGE_HAND_WITH_OTHER;
 
             default:
-                return Action.NO_ACTION;
+                return CardAbility.NO_ABILITY;
         }
     }
 
@@ -140,7 +147,7 @@ export class Card {
     public readonly rank: CardRank;
     public readonly weight: CardWeight;
     private used: boolean;
-    private readonly action: Action;
+    private readonly ability: CardAbility;
 
     // @todo maybe isUsed in creation should be false always
     constructor(suit: CardSuit, rank: CardRank, used: boolean = false) {
@@ -150,7 +157,7 @@ export class Card {
 
         this.id = CardUtil.generateRandomId();
         this.weight = CardUtil.getWeightBySuitAndRank(suit, rank);
-        this.action = CardUtil.getActionByRank(rank);
+        this.ability = CardUtil.getAbilityByRank(rank);
     }
 
     public equalsRank(card: Card): boolean {
@@ -165,11 +172,11 @@ export class Card {
         return this.used;
     }
 
-    public getAbility(): Action {
+    public getAbility(): CardAbility {
         if (this.used) {
-            return Action.NO_ACTION;
+            return CardAbility.NO_ABILITY;
         }
 
-        return this.action;
+        return this.ability;
     }
 }

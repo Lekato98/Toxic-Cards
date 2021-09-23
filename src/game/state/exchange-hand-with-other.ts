@@ -1,7 +1,7 @@
 import { Game, Action } from "../game";
 import { State, UserActionPayload } from "./state";
 
-export class Burn implements State {
+export class ExchangeHandWithOther implements State {
     action(context: Game, action: Action, payload?: UserActionPayload): void {
         throw new Error("Method not implemented.");
     }

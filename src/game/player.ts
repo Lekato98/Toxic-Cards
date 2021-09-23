@@ -27,4 +27,16 @@ export class Player {
     public getCard(cardId:string): Card {
         return this.handCards.getCard(cardId);
     }
+
+    public emitTwoCards(): void {
+        const firstCard = 0;
+        const secondCard = 1;
+        const cards = [
+            this.handCards.getCardByOrder(firstCard), 
+            this.handCards.getCardByOrder(secondCard),
+        ];
+
+        // @TOOD add event
+        this.user.emit('', cards);
+    }
 }

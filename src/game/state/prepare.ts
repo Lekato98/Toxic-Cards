@@ -1,17 +1,11 @@
-import { Action, Game, InvalidAction, UserAction } from "../game";
-import { State } from "./state";
+import { Action, Game, InvalidAction } from "../game";
+import { State, UserActionPayload } from "./state";
 
 export class Prepare implements State {
-    public readonly context: Game;
-
-    constructor(context: Game) {
-        this.context = context;
-    }
-
-    action(action: Action, payload?: UserAction): void {
+    action(context: Game, action: Action, payload?: UserActionPayload): void {
         switch(action) {
-            case Action.START_GAME: // go to next state
-                this.context.startGameAction(payload.userId);
+            case Action.PREPARE_ROUND:
+                context.prepareRoundAction();
             
             default:
                 throw new InvalidAction;

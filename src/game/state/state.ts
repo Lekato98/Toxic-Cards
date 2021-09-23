@@ -1,7 +1,9 @@
 import { Action, Game } from "../game";
 
+export interface UserActionPayload {
+    userId: number;
+}
+
 export interface State {
-    context: Game;
-    action(action: Action, payload?: any): void;
-    // nextState(): void;
+    action(context: Game, action: Action, payload?: UserActionPayload): void;
 }

@@ -6,7 +6,8 @@ import * as cors from 'cors';
 import { Request, Response, Express } from 'express';
 import { Namespace, Server, Socket } from 'socket.io';
 import { ioConfig } from './config';
-import { InvalidAction } from './game/game';
+import { Game, InvalidAction } from './game/game';
+import { StartGame } from './game/state/start-game';
 
 const app: Express = express();
 const server: http.Server = http.createServer(app);
@@ -35,3 +36,5 @@ gameNS.on('connection', (client: Socket) => {
 });
 
 server.listen(3000, () => console.log('server listening to *:3000'));
+
+new Game(5, new StartGame);
