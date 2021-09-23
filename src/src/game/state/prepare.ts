@@ -1,7 +1,7 @@
 import { Action, Game, InvalidAction, UserAction } from "../game";
 import { State } from "./state";
 
-export class PrepareState implements State {
+export class Prepare implements State {
     public readonly context: Game;
 
     constructor(context: Game) {
