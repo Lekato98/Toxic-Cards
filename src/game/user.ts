@@ -1,8 +1,8 @@
-import { Socket } from "socket.io";
+import { Socket } from 'socket.io';
 
 export class User {
-    private id: number;
-    private username: string;
+    private readonly id: number;
+    private readonly username: string;
     private client: Socket;
 
     constructor(id: number, username: string, client: Socket) {

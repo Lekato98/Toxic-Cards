@@ -1,10 +1,14 @@
-import { Card } from "./card";
+import { Card } from './card';
 
 export class CardStack {
     private cards: Array<Card>;
 
     constructor() {
         this.cards = new Array<Card>();
+    }
+
+    public get top(): Card {
+        return this.cards[this.getSize() - 1];
     }
 
     public getSize(): number {
@@ -17,10 +21,6 @@ export class CardStack {
 
     public pick(): Card {
         return this.cards.pop();
-    }
-
-    public get top(): Card {
-        return this.cards[this.getSize() - 1];
     }
 
     public isEmpty(): boolean {

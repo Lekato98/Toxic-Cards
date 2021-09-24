@@ -1,18 +1,18 @@
-import { Card, CardAbility } from "./card";
-import { CardHand } from "./card-hand";
-import { CardStack } from "./card-stack";
-import { Deck } from "./deck";
-import { Player } from "./player";
-import { BurendPicked } from "./state/burend-picked";
-import { Burn } from "./state/burn";
-import { EndRound } from "./state/end-round";
-import { ExchangeHandWithOther } from "./state/exchange-hand-with-other";
-import { PickBurn } from "./state/pick-burn";
-import { PilePicked } from "./state/pile-picked";
-import { RoundStart } from "./state/round-start";
-import { ShowOneHandCard } from "./state/show-one-hand-card";
-import { ShowOneOtherHandCard } from "./state/show-one-other-hand-card";
-import { State, UserActionPayload } from "./state/state";
+import { Card, CardAbility } from './card';
+import { CardHand } from './card-hand';
+import { CardStack } from './card-stack';
+import { Deck } from './deck';
+import { Player } from './player';
+import { BurnedPicked } from './state/burned-picked';
+import { Burn } from './state/burn';
+import { EndRound } from './state/end-round';
+import { ExchangeHandWithOther } from './state/exchange-hand-with-other';
+import { PickBurn } from './state/pick-burn';
+import { PilePicked } from './state/pile-picked';
+import { RoundStart } from './state/round-start';
+import { ShowOneHandCard } from './state/show-one-hand-card';
+import { ShowOneOtherHandCard } from './state/show-one-other-hand-card';
+import { State, UserActionPayload } from './state/state';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -29,7 +29,7 @@ export enum Action {
     START_ROUND,// internal
     JOIN_AS_PLAYER, // user id
     JOIN_AS_SPECTATOR, // user id
-    DISTRBUTE_CARD, // inner action
+    DISTRIBUTE_CARD, // inner action
     SELECT_FIRST_TURN, // inner action
     PICK_CARD_FROM_PILE, // user id
     PICK_CARD_FROM_BURNED, // user id
@@ -48,43 +48,46 @@ export enum Action {
     NO_ACTION, // nothing
 }
 
-export enum StateName {
-    PERPARE_GAME,
-    START_GAME,
-    IN_GAME,
-}
-
 export enum JoinType {
     PLAYER,
     SPECTATOR,
 }
 
-export interface Map<T> {
-    [key: string]: T;
-}
-
 export class Game {
     public players: Array<Player>;
-    private userPlayer: Map<Player>;
-    private userSpectator: Map<Player>;
-    private jointType: Map<JoinType>;
     public deck: Deck;
     public burnedCards: CardStack;
     public pileOfCards: CardStack;
     public passedBy: Player;
     public turn: number;
     public state: State;
-    public numberOfPlayers: number;
     public maxNumberOfPlayers: number;
     public isGameStarted: boolean;
     public pickedCard: Card;
-    public leader: Player;
+    public leader: number;
+    // all actions that's will be called directly from code
+    public readonly INTERNAL_BASED_ACTION = [
+        Action.START_GAME,
+        Action.START_ROUND,
+        Action.DISTRIBUTE_CARD,
+        Action.SELECT_FIRST_TURN,
+        Action.NEXT_TURN,
+    ];
+    // all actions that's need to check isValidUser
+    public readonly USER_BASED_ACTION = [
+        Action.JOIN_AS_PLAYER,
+        Action.JOIN_AS_SPECTATOR,
+        Action.LEAVE,
+    ];
+    private readonly userPlayer: Map<number, Player>;
+    private userSpectator: Map<number, Player>;
+    private readonly jointType: Map<number, JoinType>;
     private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
     private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
-    private readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
-    // all actions thats need to check isLeader
+    public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
+    // all actions that's need to check isLeader
     private readonly LEADER_BASED_ACTIONS = [Action.START_GAME, Action.RESTART];
-    // all actions thats need to check isUserTurn
+    // all actions that's need to check isUserTurn
     private readonly USER_TURN_BASED_ACTION = [
         Action.BURN_CARD,
         Action.EXCHANGE_PICK_WITH_HAND,
@@ -94,19 +97,6 @@ export class Game {
         Action.PICK_CARD_FROM_BURNED,
         Action.PICK_CARD_FROM_PILE,
     ];
-    // all actions thats will be called dirctly from code
-    public readonly INTERNALT_BASED_ACTION = [
-        Action.START_GAME,
-        Action.DISTRBUTE_CARD,
-        Action.SELECT_FIRST_TURN,
-        Action.NEXT_TURN,
-    ];
-    // all actions thats need to check isValidUser
-    public readonly USER_BASED_ACTION = [
-        Action.JOIN_AS_PLAYER,
-        Action.JOIN_AS_SPECTATOR,
-        Action.LEAVE,
-    ];
 
     constructor(maxNumberOfPlayers: number, state: State) {
         if (!this.isValidMaxNumberOfPlayers(maxNumberOfPlayers)) {
@@ -114,22 +104,41 @@ export class Game {
         }
 
         this.maxNumberOfPlayers = maxNumberOfPlayers;
-        this.numberOfPlayers = 0;
-        this.players = new Array<Player>(maxNumberOfPlayers);
         this.deck = new Deck();
         this.burnedCards = new CardStack();
         this.pileOfCards = new CardStack();
+        this.userPlayer = new Map<number, Player>();
+        this.jointType = new Map<number, JoinType>();
         this.state = state;
         this.isGameStarted = false;
         this.pickedCard = null;
+        this.leader = null;
+        this.passedBy = null;
+
+        this.initializePlayers();
+    }
+
+    public initializePlayers(): void {
+        this.players = new Array<Player>(this.maxNumberOfPlayers);
+        for (let i = 0; i < this.maxNumberOfPlayers; ++i) {
+            this.players[i] = new Player();
+        }
+    }
+
+    public get numberOfPlayers(): number {
+        return this.userPlayer.size;
     }
 
     public setLeader(userId: number) {
-        this.leader = this.userPlayer[userId];
+        this.leader = userId;
     }
 
     public setState(state: State): void {
         this.state = state;
+
+        if (this.state instanceof RoundStart) {
+            this.action(Action.START_ROUND);
+        }
     }
 
     public validateUsingActionBased(action: Action, userId?: number): boolean {
@@ -142,18 +151,19 @@ export class Game {
             return this.isUserTurn(userId);
         } else {
             // todo check if needed
-            return (userId === null || userId === undefined) && this.INTERNALT_BASED_ACTION.some(isIn);
+            return (userId === null || userId === undefined) && this.INTERNAL_BASED_ACTION.some(isIn);
         }
     }
 
     public action(action: Action, payload?: UserActionPayload) {
-        if (!this.validateUsingActionBased(action, payload.userId)) {
+        if (!this.validateUsingActionBased(action, payload?.userId)) {
             throw InvalidAction;
         }
 
-        // global avilable actions
+        // global available actions
         switch (action) {
             case Action.JOIN_AS_PLAYER: // same state
+                return this.joinAsPlayerAction(payload.userId, payload.playerId);
             case Action.JOIN_AS_SPECTATOR: // same state
             case Action.LEAVE:
             // this.doSomething();
@@ -175,29 +185,28 @@ export class Game {
 
         this.isGameStarted = true;
         this.deck.shuffle();
-        this.setState(new RoundStart);
-    }
-
-    public prepareRoundAction() {
         this.selectFirstTurnAction();
         this.setState(new RoundStart);
     }
+
+    // public prepareRoundAction() {
+    //     this.selectFirstTurnAction();
+    //     this.setState(new RoundStart);
+    // }
 
     public startRoundAction() {
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
         this.setState(new PickBurn);
     }
-    
 
+    // @todo maybe rename (remove action from name)
     public distributeCardsAction() {
+        console.log('Distribute Cards');
         this.players.forEach((_player: Player) => {
-            const handCards = new CardHand();
             for (let i = 1; i <= this.DEFAULT_NUMBER_OF_CARDS_PER_HAND; ++i) {
-                handCards.add(this.deck.pop());
+                _player.addCardToHand(this.deck.pop());
             }
-
-            _player.setHandCards(handCards);
         });
 
         while (!this.deck.isEmpty()) {
@@ -205,16 +214,16 @@ export class Game {
         }
     }
 
-    // @todo mabye rename (remove action from name)
+    // @todo maybe rename (remove action from name)
     public showTwoHandCardsAction() {
+        console.log('Show Cards');
         this.players.forEach((_player: Player) => _player.emitTwoCards());
     }
 
-    // @todo mabye rename (remove action from name)
+    // @todo maybe rename (remove action from name)
     public selectFirstTurnAction() {
         // @todo move logic to helper class
-        const randomTurn = Math.floor(Math.random() * this.players.length);
-        this.turn = randomTurn;
+        this.turn = Math.floor(Math.random() * this.players.length);
     }
 
     public pickCardFromPileAction() {
@@ -224,18 +233,18 @@ export class Game {
 
     public pickCardFromBurnedAction() {
         this.pickedCard = this.burnedCards.pick();
-        this.setState(new BurendPicked);
+        this.setState(new BurnedPicked);
     }
 
     public burnOneHandCardAction(userId: number, cardId: string) {
         if (this.burnedCards.isEmpty()) {
-            throw new InvalidAction('Burend cards stack is empty')
+            throw new InvalidAction('Burned cards stack is empty');
         }
 
-        const player = this.userPlayer[userId];
+        const player = this.userPlayer.get(userId);
         const card = player.getCard(cardId);
-        const topBurendCard = this.burnedCards.top;
-        if (card.equalsRank(topBurendCard)) {
+        const topBurnedCard = this.burnedCards.top;
+        if (card.equalsRank(topBurnedCard)) {
             player.handCards.remove(card);
             this.burnedCards.put(card);
         } else {
@@ -248,13 +257,13 @@ export class Game {
     public useAbilityAction(): void {
         const cardAbility = this.pickedCard.getAbility();
         this.pickedCard.markAsUsed();
-        switch(cardAbility) {
+        switch (cardAbility) {
             case CardAbility.EXCHANGE_HAND_WITH_OTHER:
                 return this.setState(new ExchangeHandWithOther);
 
             case CardAbility.SHOW_ONE_HAND_CARD:
                 return this.setState(new ShowOneHandCard);
-                
+
             case CardAbility.SHOW_ONE_OTHER_HAND_CARD:
                 return this.setState(new ShowOneOtherHandCard);
 
@@ -267,7 +276,7 @@ export class Game {
     }
 
     public exchangePickWithHandAction(userId: number, cardId: string) {
-        const player = this.userPlayer[userId];
+        const player = this.userPlayer.get(userId);
         let card = player.getCard(cardId);
         let pickedCard = this.pickedCard;
         [pickedCard, card] = [card, pickedCard];
@@ -276,7 +285,7 @@ export class Game {
 
     public exchangeHandWithOther(userId: number, cardId: string, otherPlayerId: number, otherCardId: string) {
         if (this.isValidPlayer(otherPlayerId)) {
-            const player = this.userPlayer[userId];
+            const player = this.userPlayer.get(userId);
             const otherPlayer = this.players[otherPlayerId];
             if (player === otherPlayer) {
                 throw new InvalidAction('Changing card with your self is not allowed');
@@ -286,20 +295,23 @@ export class Game {
             let otherPlayerCard = otherPlayer.getCard(otherCardId);
 
             [playerCard, otherPlayerCard] = [otherPlayerCard, playerCard];
+            this.setState(new Burn);
         } else {
             throw new InvalidAction('Pick valid card your turn.');
         }
     }
 
     public showOneHandCardAction(userId: number, cardId: string) {
-        const card = this.userPlayer[userId].getCard(cardId);
+        const card = this.userPlayer.get(userId).getCard(cardId);
         // emit with card suit, rank
+        this.setState(new Burn);
     }
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
         if (this.isValidPlayer(otherPlayerId)) {
             const card = this.players[otherPlayerId].getCard(otherCardId);
             // emit with card suit, rank
+            this.setState(new Burn);
         } else {
             throw new InvalidAction('Pick valid card');
         }
@@ -309,19 +321,37 @@ export class Game {
         this.passedBy = this.players[this.turn];
     }
 
+    public endGameAction() {
+
+    }
+
     // user/turn action, game action, leader action
     public restartAction() {
         // @todo function reset
     }
 
-    public joinAsPlayerAction(userId: number): void {
+    public joinAsPlayerAction(userId: number, playerId: number): void {
         if (this.isJoinedAsPlayer(userId)) {
             throw new InvalidAction('Player already joined');
         }
+
+        if (!this.isValidPlayer(playerId)) {
+            throw new InvalidAction('Invalid position or already taken');
+        }
+
+        if (this.isFull()) {
+            throw new InvalidAction('The game is already full join another game');
+        }
+
+        if (!this.numberOfPlayers) {
+            this.setLeader(userId);
+        }
+
+        this.userPlayer.set(userId, this.players[playerId]);
     }
 
     public joinAsSpectatorAction(): void {
-        
+
     }
 
     public leaveAction(): void {
@@ -329,7 +359,7 @@ export class Game {
     }
 
     public isJoinedAsPlayer(userId: number): boolean {
-        return this.userPlayer[userId] !== undefined;
+        return this.userPlayer.has(userId);
     }
 
     // @todo
@@ -346,10 +376,14 @@ export class Game {
     }
 
     public isLeaderUser(userId: number): boolean {
-        return this.leader === this.userPlayer[userId];
+        return this.leader === userId;
     }
 
     public isValidPlayer(playerId: number): boolean {
         return 0 <= playerId && playerId < this.players.length;
+    }
+
+    public isFull(): boolean {
+        return this.numberOfPlayers === this.maxNumberOfPlayers;
     }
 }

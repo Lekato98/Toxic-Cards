@@ -1,5 +1,5 @@
-import { Game, Action, InvalidAction } from "../game";
-import { State, UserActionPayload } from "./state";
+import { Action, Game, InvalidAction } from '../game';
+import { State, UserActionPayload } from './state';
 
 interface PickBurnPayload extends UserActionPayload {
     cardId: string;
@@ -7,15 +7,15 @@ interface PickBurnPayload extends UserActionPayload {
 
 export class PickBurn implements State {
     action(context: Game, action: Action, payload?: PickBurnPayload): void {
-        switch(action) {
+        switch (action) {
             case Action.PICK_CARD_FROM_PILE:
-                context.pickCardFromPileAction();
-                
+                return context.pickCardFromPileAction();
+
             case Action.PICK_CARD_FROM_BURNED:
-                context.pickCardFromBurnedAction();
+                return context.pickCardFromBurnedAction();
 
             case Action.BURN_ONE_HAND_CARD:
-                context.burnOneHandCardAction(payload?.userId, payload?.cardId);
+                return context.burnOneHandCardAction(payload?.userId, payload?.cardId);
 
             default:
                 throw new InvalidAction;

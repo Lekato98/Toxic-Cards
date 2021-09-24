@@ -1,7 +1,8 @@
-import { Action, Game } from "../game";
+import { Action, Game } from '../game';
 
 export interface UserActionPayload {
     userId: number;
+    playerId?: number;
 }
 
 export interface State {

@@ -1,16 +1,16 @@
-import { Card, CardUtil } from "./card";
+import { Card, CardUtil } from './card';
 
-abstract class DeckUtil {
+export abstract class DeckUtil {
     public static createDeckOfCardsNTimes(n: number = 1): Array<Card> {
         const deckOfCards: Array<Card> = new Array<Card>();
-        for (const suti of CardUtil.CARD_SUITS) {
+        for (const suit of CardUtil.CARD_SUITS) {
             for (const rank of CardUtil.CARD_RANKS) {
-                const newCard = new Card(suti, rank);
+                const newCard = new Card(suit, rank);
                 deckOfCards.push(newCard);
             }
         }
 
-        return Array.from({ length: n }, () => deckOfCards).flat();
+        return Array.from({length: n}, () => deckOfCards).flat();
     }
 }
 
@@ -28,34 +28,34 @@ export class Deck {
         this.numberOfDecks = numberOfDecks;
         this.reset();
     }
-    
+
     public reset(): void {
         this.cards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
     }
 
     /**
-     * Fisher Yate Algorithim for shuffle
+     * Fisher Yate Algorithm for shuffle
      */
     public shuffle(): void {
         let currentIndex = this.getSize();
         let randomIndex: number;
-      
+
         // While there remain elements to shuffle...
         while (currentIndex != 0) {
-      
-          // Pick a remaining element...
-          randomIndex = Math.floor(Math.random() * currentIndex);
-          currentIndex--;
-      
-          // And swap it with the current element.
-          [this.cards[currentIndex], this.cards[randomIndex]] = [
-            this.cards[randomIndex], this.cards[currentIndex]];
+
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+
+            // And swap it with the current element.
+            [this.cards[currentIndex], this.cards[randomIndex]] = [
+                this.cards[randomIndex], this.cards[currentIndex]];
         }
     }
 
     /**
      * return size of cards
-     * @returns 
+     * @returns
      */
     public getSize(): number {
         return this.cards.length;
@@ -63,8 +63,12 @@ export class Deck {
 
     public pop(): Card {
         return this.cards.pop();
-    } 
-    
+    }
+
+    public getCards(): Array<Card> {
+        return this.cards;
+    }
+
     public isValidNumberOfDecks(numberOfDecks: number): boolean {
         return numberOfDecks <= this.MAX_NUMBER_OF_DECKS || numberOfDecks > this.MIN_NUMBER_OF_DECKS;
     }

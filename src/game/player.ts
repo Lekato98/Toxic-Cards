@@ -1,19 +1,20 @@
-import { Card } from "./card";
-import { CardHand } from "./card-hand";
-import { User } from "./user";
+import { Card } from './card';
+import { CardHand } from './card-hand';
+import { User } from './user';
 
 export class Player {
-    private user: User;
     public handCards: CardHand;
     public score: number;
+    private user: User;
 
-    constructor(user: User) {
+    constructor(user?: User) {
         this.user = user;
         this.score = 0;
+        this.handCards = new CardHand();
     }
 
-    public setHandCards(handCards: CardHand): void {
-        this.handCards = handCards;
+    public addCardToHand(card: Card): void {
+        this.handCards.add(card);
     }
 
     public isOwner(userId: number): boolean {
@@ -24,7 +25,7 @@ export class Player {
         return this.handCards.contains(card);
     }
 
-    public getCard(cardId:string): Card {
+    public getCard(cardId: string): Card {
         return this.handCards.getCard(cardId);
     }
 
@@ -32,11 +33,11 @@ export class Player {
         const firstCard = 0;
         const secondCard = 1;
         const cards = [
-            this.handCards.getCardByOrder(firstCard), 
+            this.handCards.getCardByOrder(firstCard),
             this.handCards.getCardByOrder(secondCard),
         ];
 
-        // @TOOD add event
-        this.user.emit('', cards);
+        // @TODO add event
+        this.user?.emit('', cards);
     }
 }

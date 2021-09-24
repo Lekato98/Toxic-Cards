@@ -1,5 +1,4 @@
-import { nanoid } from "nanoid";
-import { Action } from "./game";
+import { nanoid } from 'nanoid';
 
 enum CardSuit {
     CLUBS = 'C',
@@ -54,20 +53,20 @@ export enum CardAbility {
 }
 
 export abstract class CardUtil {
-    private static readonly DEFAULT_ID_SIZE = 6;
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
     public static readonly CARD_RANKS = [
-        CardRank.TWO, CardRank.THREE, CardRank.FOURE, 
-        CardRank.FIVE, CardRank.SIX, CardRank.SEVEN, 
-        CardRank.EIGHT, CardRank.NINE, CardRank.TEN, 
-        CardRank.JACK, CardRank.QUEEN, CardRank.KING, 
-        CardRank.ACE, 
+        CardRank.TWO, CardRank.THREE, CardRank.FOURE,
+        CardRank.FIVE, CardRank.SIX, CardRank.SEVEN,
+        CardRank.EIGHT, CardRank.NINE, CardRank.TEN,
+        CardRank.JACK, CardRank.QUEEN, CardRank.KING,
+        CardRank.ACE,
     ];
+    private static readonly DEFAULT_ID_SIZE = 6;
 
     /**
      * getWeight
      */
-     public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
+    public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
         if (rank === CardRank.KING) {
             return CardUtil.isRed(suit) ? CardWeight.RED_KING : CardWeight.BLACK_KING;
         }
@@ -81,7 +80,7 @@ export abstract class CardUtil {
      * getAbility
      */
     public static getAbilityByRank(rank: CardRank): CardAbility {
-        switch(rank) {
+        switch (rank) {
             case CardRank.SEVEN:
             case CardRank.EIGHT:
                 return CardAbility.SHOW_ONE_HAND_CARD;
@@ -89,7 +88,7 @@ export abstract class CardUtil {
             case CardRank.NINE:
             case CardRank.TEN:
                 return CardAbility.SHOW_ONE_OTHER_HAND_CARD;
-                
+
             case CardRank.JACK:
                 return CardAbility.EXCHANGE_HAND_WITH_OTHER;
 
@@ -102,15 +101,15 @@ export abstract class CardUtil {
      * getColor
      */
     public static getColor(card: Card): CardColor {
-        return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK; 
+        return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK;
     }
 
     /**
      * isRed
      */
-     public static isRed(suit: CardSuit): boolean;
-     public static isRed(card: Card): boolean;
-     public static isRed(paramOne: Card | CardSuit): boolean {
+    public static isRed(suit: CardSuit): boolean;
+    public static isRed(card: Card): boolean;
+    public static isRed(paramOne: Card | CardSuit): boolean {
         let suit: CardSuit;
 
         if (paramOne instanceof Card) {
@@ -162,6 +161,14 @@ export class Card {
 
     public equalsRank(card: Card): boolean {
         return this.rank === card.rank;
+    }
+
+    public equalsSuit(card: Card): boolean {
+        return this.suit === card.suit;
+    }
+
+    public equalsRankAndSuit(card: Card): boolean {
+        return this.equalsRank(card) && this.equalsSuit(card);
     }
 
     public markAsUsed(): void {

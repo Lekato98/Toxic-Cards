@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { Card } from './card';
 
 export class CardHand {
     private cards: Array<Card>;
@@ -45,5 +45,9 @@ export class CardHand {
 
     public isValidOrder(order: number): boolean {
         return 0 <= order && order < this.getSize();
+    }
+
+    public isEmpty(): boolean {
+        return this.getSize() === 0;
     }
 }
