@@ -1,10 +1,14 @@
-export class User {
-    private id: number;
-    private username: string;
+import { Socket } from 'socket.io';
 
-    constructor(id: number, username: string) {
+export class User {
+    private readonly id: number;
+    private readonly username: string;
+    private client: Socket;
+
+    constructor(id: number, username: string, client: Socket) {
         this.id = id;
         this.username = username;
+        this.client = client;
     }
 
     public getId(): number {
@@ -13,5 +17,9 @@ export class User {
 
     public getUsername(): string {
         return this.username;
+    }
+
+    public emit(event: string, message: any): void {
+        this.client.emit(event, message);
     }
 }

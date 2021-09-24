@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { Card } from './card';
 
 export class CardStack {
     private cards: Array<Card>;
@@ -7,28 +7,23 @@ export class CardStack {
         this.cards = new Array<Card>();
     }
 
-    /**
-     * getSize
-     */
+    public get top(): Card {
+        return this.cards[this.getSize() - 1];
+    }
+
     public getSize(): number {
         return this.cards.length;
     }
 
-    /**
-     * add
-     */
     public put(card: Card): void {
         this.cards.push(card);
     }
 
-    /**
-     * pick
-     */
     public pick(): Card {
         return this.cards.pop();
     }
 
-    public get top(): Card {
-        return this.cards[this.getSize() - 1];
+    public isEmpty(): boolean {
+        return this.cards.length === 0;
     }
 }

@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { Card } from './card';
 
 export class CardHand {
     private cards: Array<Card>;
@@ -33,5 +33,21 @@ export class CardHand {
 
     public hsaCard(cardId: string): boolean {
         return this.cards.some((_card: Card) => _card.id === cardId);
+    }
+
+    public getCardByOrder(order: number) {
+        if (!this.isValidOrder(order)) {
+            throw new Error('Invalid card order excced the limit');
+        }
+
+        return this.cards[order];
+    }
+
+    public isValidOrder(order: number): boolean {
+        return 0 <= order && order < this.getSize();
+    }
+
+    public isEmpty(): boolean {
+        return this.getSize() === 0;
     }
 }

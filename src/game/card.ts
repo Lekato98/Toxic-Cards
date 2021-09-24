@@ -1,5 +1,4 @@
-import { customAlphabet, customRandom, nanoid } from "nanoid";
-import { Action } from "./game";
+import { nanoid } from 'nanoid';
 
 enum CardSuit {
     CLUBS = 'C',
@@ -46,21 +45,28 @@ enum CardColor {
     BLACK = 'black',
 }
 
+export enum CardAbility {
+    SHOW_ONE_HAND_CARD,
+    SHOW_ONE_OTHER_HAND_CARD,
+    EXCHANGE_HAND_WITH_OTHER,
+    NO_ABILITY,
+}
+
 export abstract class CardUtil {
-    private static readonly DEFAULT_ID_SIZE = 6;
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
     public static readonly CARD_RANKS = [
-        CardRank.TWO, CardRank.THREE, CardRank.FOURE, 
-        CardRank.FIVE, CardRank.SIX, CardRank.SEVEN, 
-        CardRank.EIGHT, CardRank.NINE, CardRank.TEN, 
-        CardRank.JACK, CardRank.QUEEN, CardRank.KING, 
-        CardRank.ACE, 
+        CardRank.TWO, CardRank.THREE, CardRank.FOURE,
+        CardRank.FIVE, CardRank.SIX, CardRank.SEVEN,
+        CardRank.EIGHT, CardRank.NINE, CardRank.TEN,
+        CardRank.JACK, CardRank.QUEEN, CardRank.KING,
+        CardRank.ACE,
     ];
+    private static readonly DEFAULT_ID_SIZE = 6;
 
     /**
      * getWeight
      */
-     public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
+    public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
         if (rank === CardRank.KING) {
             return CardUtil.isRed(suit) ? CardWeight.RED_KING : CardWeight.BLACK_KING;
         }
@@ -73,21 +79,21 @@ export abstract class CardUtil {
     /**
      * getAbility
      */
-    public static getActionByRank(rank: CardRank): Action {
-        switch(rank) {
+    public static getAbilityByRank(rank: CardRank): CardAbility {
+        switch (rank) {
             case CardRank.SEVEN:
             case CardRank.EIGHT:
-                return Action.SHOW_ONE_HAND_CARD;
+                return CardAbility.SHOW_ONE_HAND_CARD;
 
             case CardRank.NINE:
             case CardRank.TEN:
-                return Action.SHOW_ONE_OTHER_HAND_CARD;
-                
+                return CardAbility.SHOW_ONE_OTHER_HAND_CARD;
+
             case CardRank.JACK:
-                return Action.EXCHANGE_HAND_WITH_OTHER;
+                return CardAbility.EXCHANGE_HAND_WITH_OTHER;
 
             default:
-                return Action.NO_ACTION;
+                return CardAbility.NO_ABILITY;
         }
     }
 
@@ -95,15 +101,15 @@ export abstract class CardUtil {
      * getColor
      */
     public static getColor(card: Card): CardColor {
-        return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK; 
+        return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK;
     }
 
     /**
      * isRed
      */
-     public static isRed(suit: CardSuit): boolean;
-     public static isRed(card: Card): boolean;
-     public static isRed(paramOne: Card | CardSuit): boolean {
+    public static isRed(suit: CardSuit): boolean;
+    public static isRed(card: Card): boolean;
+    public static isRed(paramOne: Card | CardSuit): boolean {
         let suit: CardSuit;
 
         if (paramOne instanceof Card) {
@@ -140,7 +146,7 @@ export class Card {
     public readonly rank: CardRank;
     public readonly weight: CardWeight;
     private used: boolean;
-    private readonly action: Action;
+    private readonly ability: CardAbility;
 
     // @todo maybe isUsed in creation should be false always
     constructor(suit: CardSuit, rank: CardRank, used: boolean = false) {
@@ -150,11 +156,19 @@ export class Card {
 
         this.id = CardUtil.generateRandomId();
         this.weight = CardUtil.getWeightBySuitAndRank(suit, rank);
-        this.action = CardUtil.getActionByRank(rank);
+        this.ability = CardUtil.getAbilityByRank(rank);
     }
 
     public equalsRank(card: Card): boolean {
         return this.rank === card.rank;
+    }
+
+    public equalsSuit(card: Card): boolean {
+        return this.suit === card.suit;
+    }
+
+    public equalsRankAndSuit(card: Card): boolean {
+        return this.equalsRank(card) && this.equalsSuit(card);
     }
 
     public markAsUsed(): void {
@@ -165,11 +179,11 @@ export class Card {
         return this.used;
     }
 
-    public getAbility(): Action {
+    public getAbility(): CardAbility {
         if (this.used) {
-            return Action.NO_ACTION;
+            return CardAbility.NO_ABILITY;
         }
 
-        return this.action;
+        return this.ability;
     }
 }
