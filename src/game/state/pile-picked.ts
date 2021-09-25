@@ -6,7 +6,19 @@ interface PilePickedPayload extends UserActionPayload {
 }
 
 export class PilePicked implements State {
-    action(context: Game, action: Action, payload?: PilePickedPayload): void {
+    private static instance: PilePicked;
+
+    private constructor() {}
+
+    public static getInstance(): PilePicked {
+        if (!this.instance) {
+            this.instance = new PilePicked();
+        }
+
+        return this.instance;
+    }
+
+    public action(context: Game, action: Action, payload?: PilePickedPayload): void {
         switch (action) {
             case Action.THROW_CARD:
                 return context.useAbilityAction();

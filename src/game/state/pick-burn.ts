@@ -6,7 +6,19 @@ interface PickBurnPayload extends UserActionPayload {
 }
 
 export class PickBurn implements State {
-    action(context: Game, action: Action, payload?: PickBurnPayload): void {
+    private static instance: PickBurn;
+
+    private constructor() {}
+
+    public static getInstance(): PickBurn {
+        if (!this.instance) {
+            this.instance = new PickBurn();
+        }
+
+        return this.instance;
+    }
+
+    public action(context: Game, action: Action, payload?: PickBurnPayload): void {
         switch (action) {
             case Action.PICK_CARD_FROM_PILE:
                 return context.pickCardFromPileAction();

@@ -32,10 +32,6 @@ export class CardHand {
         return this.cards.some((_card: Card) => _card === card);
     }
 
-    public hsaCard(cardId: string): boolean {
-        return this.cards.some((_card: Card) => _card.id === cardId);
-    }
-
     public getCardByOrder(order: number) {
         if (!this.isValidOrder(order)) {
             throw new Error('Invalid card order exceed the limit');

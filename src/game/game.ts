@@ -102,6 +102,9 @@ export class Game {
     // all actions that's need to check isUserTurn
     private readonly USER_TURN_BASED_ACTION = [
         Action.EXCHANGE_PICK_WITH_HAND,
+        Action.EXCHANGE_HAND_WITH_OTHER,
+        Action.SHOW_ONE_OTHER_HAND_CARD,
+        Action.SHOW_ONE_HAND_CARD,
         Action.PASS,
         Action.USE_ABILITY,
         Action.THROW_CARD,
@@ -183,13 +186,17 @@ export class Game {
 
         // global available actions
         switch (action) {
-            case Action.JOIN_AS_PLAYER: // same state
+            case Action.JOIN_AS_PLAYER:
                 return this.joinAsPlayerAction(payload.userId, payload.playerId);
-            case Action.JOIN_AS_SPECTATOR: // same state
+
+            case Action.JOIN_AS_SPECTATOR:
+                return  this.joinAsSpectatorAction();
+
             case Action.LEAVE:
+                return  this.leaveAction();
+
             case Action.PASS:
                 return this.passAction();
-            // this.doSomething();
 
             default:
                 this.state.action(this, action, payload);
@@ -208,22 +215,22 @@ export class Game {
 
         this.isGameStarted = true;
         this.selectFirstTurnAction();
-        this.setState(new BeginOfRound);
+        this.setState(BeginOfRound.getInstance());
     }
 
     public beginOfRoundAction() {
         this.deck.shuffle();
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
-        this.setState(new BeginOfTurn);
+        this.setState(BeginOfTurn.getInstance());
     }
 
     public beginOfTurnAction(): void {
         if (this.passedBy === this.userPlayer.get(this.turn)) {
-            return this.setState(new EndOfRound);
+            return this.setState(EndOfRound.getInstance());
         }
 
-        this.setState(new PickBurn);
+        this.setState(PickBurn.getInstance());
     }
 
     // @todo maybe rename (remove action from name)
@@ -252,7 +259,7 @@ export class Game {
 
     public pickCardFromPileAction() {
         this.pickedCard = this.pileOfCards.pick();
-        this.setState(new PilePicked);
+        this.setState(PilePicked.getInstance());
     }
 
     public pickCardFromBurnedAction() {
@@ -261,7 +268,7 @@ export class Game {
         }
 
         this.pickedCard = this.burnedCards.pick();
-        this.setState(new BurnedPicked);
+        this.setState(BurnedPicked.getInstance());
     }
 
     public burnOneHandCardAction(userId: number, cardId: string) {
@@ -279,7 +286,7 @@ export class Game {
             player.handCards.add(this.burnedCards.pick());
         }
 
-        this.setState(new EndOfTurn);
+        this.setState(EndOfTurn.getInstance());
     }
 
     public useAbilityAction(): void {
@@ -287,16 +294,16 @@ export class Game {
         this.pickedCard.markAsUsed();
         switch (cardAbility) {
             case CardAbility.EXCHANGE_HAND_WITH_OTHER:
-                return this.setState(new ExchangeHandWithOther);
+                return this.setState(ExchangeHandWithOther.getInstance());
 
             case CardAbility.SHOW_ONE_HAND_CARD:
-                return this.setState(new ShowOneHandCard);
+                return this.setState(ShowOneHandCard.getInstance());
 
             case CardAbility.SHOW_ONE_OTHER_HAND_CARD:
-                return this.setState(new ShowOneOtherHandCard);
+                return this.setState(ShowOneOtherHandCard.getInstance());
 
             case CardAbility.NO_ABILITY:
-                return this.setState(new Burn);
+                return this.setState(Burn.getInstance());
 
             default:
                 throw new InvalidAction('Unknown ability');
@@ -308,7 +315,7 @@ export class Game {
         const card = player.getCard(cardId);
         const pickedCard = this.pickedCard;
         CardUtil.swap(card, pickedCard);
-        this.setState(new Burn);
+        this.setState(Burn.getInstance());
     }
 
     public exchangeHandWithOther(userId: number, cardId: string, otherPlayerId: number, otherCardId: string) {
@@ -322,7 +329,7 @@ export class Game {
             const playerCard = player.getCard(cardId);
             const otherPlayerCard = otherPlayer.getCard(otherCardId);
             CardUtil.swap(playerCard, otherPlayerCard);
-            this.setState(new Burn);
+            this.setState(Burn.getInstance());
         } else {
             throw new InvalidAction('Pick a valid card.');
         }
@@ -331,17 +338,14 @@ export class Game {
     public showOneHandCardAction(userId: number, cardId: string) {
         const card = this.userPlayer.get(userId).getCard(cardId);
         // emit with card suit, rank
-        this.setState(new Burn);
-
-        // remove it just for test
-        return card;
+        this.setState(Burn.getInstance());
     }
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
         if (this.isValidPlayer(otherPlayerId)) {
             const card = this.players[otherPlayerId].getCard(otherCardId);
             // emit with card suit, rank
-            this.setState(new Burn);
+            this.setState(Burn.getInstance());
         } else {
             throw new InvalidAction('Pick valid card');
         }
@@ -350,7 +354,7 @@ export class Game {
     public burnAction() {
         this.burnedCards.put(this.pickedCard);
         this.pickedCard = null;
-        this.setState(new EndOfTurn);
+        this.setState(EndOfTurn.getInstance());
     }
 
     public passAction() {
@@ -361,7 +365,7 @@ export class Game {
         this.pickedCard = null; // @todo maybe remove it and put it in burn action
 
         this.nextTurn();
-        this.setState(new BeginOfTurn);
+        this.setState(BeginOfTurn.getInstance());
     }
 
     public endOfRoundAction(): void {
@@ -371,18 +375,18 @@ export class Game {
         this.deck.reset();
         this.passedBy = null;
         // @todo score calculation
-        // this.setState(new BeginOfRound);
+        // this.setState(BeginOfRound.getInstance());
         // just for testing
-        this.setState(new EndOfGame);
+        this.setState(EndOfGame.getInstance());
     }
 
     public endOfGameAction() {
-        // this.setState(new BeginOfGame);
+        // this.setState(BeginOfGame.getInstance());
     }
 
     // user/turn action, game action, leader action
     public restartAction() {
-        // @todo function reset
+        // @todo reset
     }
 
     public joinAsPlayerAction(userId: number, playerId: number): void {

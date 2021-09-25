@@ -7,8 +7,11 @@ import { Burn } from '../src/game/state/burn';
 import { EndOfTurn } from '../src/game/state/end-of-turn';
 import { BeginOfTurn } from '../src/game/state/begin-of-turn';
 import { BurnedPicked } from '../src/game/state/burned-picked';
-import { EndOfRound } from '../src/game/state/end-of-round';
+import { Card, CardColor, CardRank, CardSuit, CardUtil } from '../src/game/card';
 import { EndOfGame } from '../src/game/state/end-of-game';
+import { ExchangeHandWithOther } from '../src/game/state/exchange-hand-with-other';
+import { ShowOneHandCard } from '../src/game/state/show-one-hand-card';
+import { ShowOneOtherHandCard } from '../src/game/state/show-one-other-hand-card';
 
 describe('Test Game', () => {
     const usersId = [0, 1, 2];
@@ -21,14 +24,14 @@ describe('Test Game', () => {
 
     test('Create Game with invalid number of players', () => {
         const maxNumberOfPlayers = 0;
-        const initialState = new BeginOfGame;
-        const mock = () =>  new Game(maxNumberOfPlayers, initialState);
+        const initialState = BeginOfGame.getInstance();
+        const mock = () => new Game(maxNumberOfPlayers, initialState);
         expect(mock).toThrow(Error);
     });
 
     test('Create Game With 3 players', () => {
         const maxNumberOfPlayers = 3;
-        const initialState = new BeginOfGame;
+        const initialState = BeginOfGame.getInstance();
         game = new Game(maxNumberOfPlayers, initialState);
         expect(game.burnedCards.isEmpty()).toBe(true);
         expect(game.burnedCards.getSize()).toBe(0);
@@ -184,7 +187,7 @@ describe('Test Game', () => {
         game.burnAction = () => ({});
 
         game.action(Action.EXCHANGE_PICK_WITH_HAND, {userId, cardId: randomCard.id});
-        game.action(Action.PASS, {userId});
+
         expect(game.pickedCard.id).toEqual(cardId);
         expect(game.pickedCard.id).not.toEqual(pickedCardId);
         expect(game.state).toBeInstanceOf(Burn);
@@ -228,6 +231,7 @@ describe('Test Game', () => {
 
         expect(game.pickedCard).toBeNull();
         game.action(Action.PICK_CARD_FROM_BURNED, {userId});
+        game.action(Action.PASS, {userId});
         expect(game.pickedCard).toBe(burnedTop);
         expect(game.state).toBeInstanceOf(BurnedPicked);
     });
@@ -261,17 +265,16 @@ describe('Test Game', () => {
         const randomCardOrder = Math.floor(Math.random() * player.handCards.getSize());
         const randomCard = player.handCards.getCardByOrder(randomCardOrder);
         const cardId = randomCard.id;
+
         const tempMock = game.endOfTurnAction;
         game.endOfTurnAction = () => ({});
 
         game.action(Action.BURN_ONE_HAND_CARD, {userId, cardId});
         expect(player.handCards.getSize()).not.toEqual(oldSize);
 
-        if (oldSize > player.handCards.getSize()) {
-            // if success burn
+        if (oldSize > player.handCards.getSize()) { // if success burn
             expect(game.burnedCards.top).toBe(randomCard);
-        } else {
-            // if fail burn
+        } else { // if fail burn
             expect(player.handCards.contains(burnedTop)).toBeTruthy();
         }
 
@@ -280,6 +283,62 @@ describe('Test Game', () => {
         game.endOfTurnAction = tempMock;
 
         game.action(Action.END_OF_TURN);
+        expect(game.state).toBeInstanceOf(PickBurn);
+    });
+
+    test('Third Turn User 1 pick pile card the use ability PICK_BURN', () => {
+        const userId = game.turn;
+        const randomCard = game.getPlayerByUserId(userId).handCards.getCardByOrder(1);
+        const cardId = randomCard.id;
+        const otherPlayerId = (userId + 1) % 3;
+        const randomPlayer = game.getPlayerByUserId(otherPlayerId);
+        const randomOtherCard = randomPlayer.handCards.getCardByOrder(1);
+        const otherCardId = randomOtherCard.id;
+        const mock = () => randomPlayer.handCards.getCardByOrder(53);
+        const anotherMock = () => game.action(Action.PICK_CARD_FROM_PILE, {userId});
+        const tempMock = game.burnAction;
+        game.burnAction = () => ({});
+
+        game.action(Action.PICK_CARD_FROM_PILE, {userId});
+        expect(game.state).toBeInstanceOf(PilePicked);
+
+        game.pickedCard = new Card(CardSuit.SPADES, CardRank.FIVE);
+        expect(CardUtil.getColor(game.pickedCard)).toBe(CardColor.BLACK);
+        expect(CardUtil.isBlack(game.pickedCard)).toBeTruthy();
+        expect(CardUtil.isBlack(CardSuit.DIAMONDS)).toBeFalsy();
+        expect(CardUtil.isKing(game.pickedCard)).toBeFalsy();
+        game.action(Action.THROW_CARD, {userId});
+        expect(mock).toThrow(Error);
+
+        expect(anotherMock).toThrow(InvalidAction);
+        expect(game.state).toBeInstanceOf(Burn);
+
+        game.setState(PilePicked.getInstance());
+        game.pickedCard = new Card(CardSuit.DIAMONDS, CardRank.JACK);
+        expect(CardUtil.isRed(game.pickedCard)).toBeTruthy();
+        expect(CardUtil.getColor(game.pickedCard)).toBe(CardColor.RED);
+        game.action(Action.THROW_CARD, {userId});
+        expect(anotherMock).toThrow(InvalidAction);
+        expect(game.state).toBeInstanceOf(ExchangeHandWithOther);
+        game.action(Action.EXCHANGE_HAND_WITH_OTHER, {userId, cardId, otherPlayerId, otherCardId});
+
+        game.setState(PilePicked.getInstance());
+        game.pickedCard = new Card(CardSuit.CLUBS, CardRank.SEVEN);
+        game.action(Action.THROW_CARD, {userId});
+        expect(anotherMock).toThrow(InvalidAction);
+        expect(game.state).toBeInstanceOf(ShowOneHandCard);
+        game.action(Action.SHOW_ONE_HAND_CARD, {userId, cardId});
+
+        game.setState(PilePicked.getInstance());
+        game.pickedCard = new Card(CardSuit.CLUBS, CardRank.TEN);
+
+        game.burnAction = tempMock;
+        game.action(Action.THROW_CARD, {userId});
+        expect(anotherMock).toThrow(InvalidAction);
+        expect(game.state).toBeInstanceOf(ShowOneOtherHandCard);
+        game.action(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId});
+
+        expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(EndOfGame);
     });
 });

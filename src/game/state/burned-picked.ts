@@ -6,7 +6,24 @@ interface BurnedPickedPayload extends UserActionPayload {
 }
 
 export class BurnedPicked implements State {
-    action(context: Game, action: Action, payload?: BurnedPickedPayload): void {
+    private static instance: BurnedPicked;
+    public readonly allowedActions;
+
+    private constructor() {
+        this.allowedActions = [
+            Action.EXCHANGE_PICK_WITH_HAND,
+        ];
+    }
+
+    public static getInstance(): BurnedPicked {
+        if (!this.instance) {
+            this.instance = new BurnedPicked();
+        }
+
+        return this.instance;
+    }
+
+    public action(context: Game, action: Action, payload?: BurnedPickedPayload): void {
         switch (action) {
             case Action.EXCHANGE_PICK_WITH_HAND:
                 return context.exchangePickWithHandAction(payload.userId, payload.cardId);
@@ -15,5 +32,4 @@ export class BurnedPicked implements State {
                 throw new InvalidAction;
         }
     }
-
 }

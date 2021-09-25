@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
 
-enum CardSuit {
+export enum CardSuit {
     CLUBS = 'C',
     DIAMONDS = 'D',
     HEARTS = 'H',
     SPADES = 'S',
 }
 
-enum CardRank {
+export enum CardRank {
     TWO,
     THREE,
     FOUR,
@@ -40,7 +40,7 @@ enum CardWeight {
     ACE = 1,
 }
 
-enum CardColor {
+export enum CardColor {
     RED = 'red',
     BLACK = 'black',
 }
