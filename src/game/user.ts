@@ -3,12 +3,12 @@ import { Socket } from 'socket.io';
 export class User {
     private readonly id: number;
     private readonly username: string;
-    private client: Socket;
+    private readonly socket: Socket;
 
-    constructor(id: number, username: string, client: Socket) {
+    constructor(id: number, username: string, socket: Socket) {
         this.id = id;
         this.username = username;
-        this.client = client;
+        this.socket = socket;
     }
 
     public getId(): number {
@@ -19,7 +19,11 @@ export class User {
         return this.username;
     }
 
+    public equals(user: User): boolean {
+        return this.id === user.id;
+    }
+
     public emit(event: string, message: any): void {
-        this.client.emit(event, message);
+        this.socket.emit(event, message);
     }
 }

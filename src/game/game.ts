@@ -17,6 +17,7 @@ import { BeginOfTurn } from './state/begin-of-turn';
 import { BeginOfGame } from './state/begin-of-game';
 import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
+import { User } from './user';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -27,32 +28,32 @@ export class InvalidAction extends Error {
 }
 
 export enum Action {
-    CREATE_GAME, // user id
-    START_GAME, // user id
-    BEGIN_OF_ROUND,// internal
-    BEGIN_OF_TURN, // internal
-    JOIN_AS_PLAYER, // user id
-    JOIN_AS_SPECTATOR, // user id
-    DISTRIBUTE_CARD, // inner action
-    SELECT_FIRST_TURN, // inner action
-    PICK_CARD_FROM_PILE, // user id
-    PICK_CARD_FROM_BURNED, // user id
+    CREATE_GAME,
+    START_GAME,
+    BEGIN_OF_ROUND,
+    BEGIN_OF_TURN,
+    JOIN_AS_PLAYER,
+    JOIN_AS_SPECTATOR,
+    DISTRIBUTE_CARD,
+    SELECT_FIRST_TURN,
+    PICK_CARD_FROM_PILE,
+    PICK_CARD_FROM_BURNED,
     BURN_ONE_HAND_CARD,
-    BURN_CARD, // user id, card id
-    THROW_CARD, // user id, card id
+    BURN_CARD,
+    THROW_CARD,
     USE_ABILITY,
-    EXCHANGE_PICK_WITH_HAND, // user id, card id
-    EXCHANGE_HAND_WITH_OTHER, // user id, card id, other user id, other card id
-    SHOW_ONE_HAND_CARD, // user id, card id
-    SHOW_ONE_OTHER_HAND_CARD, // user id, other user id, other card id
-    NEXT_TURN, // inner action
-    PASS, // user id
+    EXCHANGE_PICK_WITH_HAND,
+    EXCHANGE_HAND_WITH_OTHER,
+    SHOW_ONE_HAND_CARD,
+    SHOW_ONE_OTHER_HAND_CARD,
+    NEXT_TURN,
+    PASS,
     END_OF_TURN,
     END_OF_ROUND,
     END_OF_GAME,
-    RESTART, // user id
-    LEAVE, // user id
-    NO_ACTION, // nothing
+    RESTART,
+    LEAVE,
+    NO_ACTION,
 }
 
 export enum JoinType {
@@ -72,7 +73,7 @@ export class Game {
     public isGameStarted: boolean;
     public pickedCard: Card;
     public leader: number;
-    // all actions that's will be called directly from code
+    // all actions that's will be called directly from game
     public readonly INTERNAL_BASED_ACTION = [
         Action.START_GAME,
         Action.BEGIN_OF_ROUND,
@@ -85,21 +86,21 @@ export class Game {
         Action.END_OF_GAME,
         Action.NEXT_TURN,
     ];
-    // all actions that's need to check isValidUser
+    // all actions that's need to check isValidUser (real user)
     public readonly USER_BASED_ACTION = [
         Action.JOIN_AS_PLAYER,
         Action.JOIN_AS_SPECTATOR,
         Action.LEAVE,
     ];
     private readonly userPlayer: Map<number, Player>;
-    private userSpectator: Map<number, Player>;
+    private readonly userSpectator: Map<number, User>;
     private readonly jointType: Map<number, JoinType>;
     private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
     private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
     public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
     // all actions that's need to check isLeader
     private readonly LEADER_BASED_ACTIONS = [Action.START_GAME, Action.RESTART];
-    // all actions that's need to check isUserTurn
+    // all actions that's need to check isUserTurn (is a valid user turn)
     private readonly USER_TURN_BASED_ACTION = [
         Action.EXCHANGE_PICK_WITH_HAND,
         Action.EXCHANGE_HAND_WITH_OTHER,
@@ -135,8 +136,8 @@ export class Game {
 
     public initializePlayers(): void {
         this.players = new Array<Player>(this.maxNumberOfPlayers);
-        for (let i = 0; i < this.maxNumberOfPlayers; ++i) {
-            this.players[i] = new Player();
+        for (let id = 0; id < this.maxNumberOfPlayers; ++id) {
+            this.players[id] = new Player(id);
         }
     }
 
@@ -190,10 +191,10 @@ export class Game {
                 return this.joinAsPlayerAction(payload.userId, payload.playerId);
 
             case Action.JOIN_AS_SPECTATOR:
-                return  this.joinAsSpectatorAction();
+                return  this.joinAsSpectatorAction(payload.userId);
 
             case Action.LEAVE:
-                return  this.leaveAction();
+                return  this.leaveAction(payload.userId);
 
             case Action.PASS:
                 return this.passAction();
@@ -407,14 +408,33 @@ export class Game {
         }
 
         this.userPlayer.set(userId, this.players[playerId]);
+        this.jointType.set(userId, JoinType.PLAYER);
     }
 
-    public joinAsSpectatorAction(): void {
-
+    public joinAsSpectatorAction(user: User): void {
+        const userId = user.getId();
+        this.userSpectator.set(userId, user);
+        this.jointType.set(userId, JoinType.SPECTATOR);
     }
 
-    public leaveAction(): void {
+    public leaveAction(user: User): void {
+        const userId = user.getId();
+        const jointType = this.jointType.get(userId);
 
+        switch(jointType) {
+            case JoinType.PLAYER:
+                this.userPlayer.delete(userId);
+                break;
+
+            case JoinType.SPECTATOR:
+                this.userSpectator.delete(userId);
+                break;
+
+            default:
+                throw new InvalidAction('Unknown user');
+        }
+
+        this.jointType.delete(userId);
     }
 
     public getPlayerByUserId(userId: number): Player {
