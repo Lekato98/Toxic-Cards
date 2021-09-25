@@ -15,7 +15,7 @@ export class PickBurn implements State {
                 return context.pickCardFromBurnedAction();
 
             case Action.BURN_ONE_HAND_CARD:
-                return context.burnOneHandCardAction(payload?.userId, payload?.cardId);
+                return context.burnOneHandCardAction(payload.userId, payload.cardId);
 
             default:
                 throw new InvalidAction;

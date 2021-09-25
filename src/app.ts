@@ -6,7 +6,7 @@ import * as cors from 'cors';
 import { Namespace, Server, Socket } from 'socket.io';
 import { ioConfig } from './config';
 import { Action, Game } from './game/game';
-import { StartGame } from './game/state/start-game';
+import { BeginOfGame } from './game/state/begin-of-game';
 
 const app: Express = express();
 const server: http.Server = http.createServer(app);
@@ -37,7 +37,7 @@ gameNS.on('connection', (client: Socket) => {
             if (inGame.has(message.userId)) {
                 throw new Error('Player is already in game');
             }
-            games.push(new Game(message.numberOfPlayers, new StartGame));
+            games.push(new Game(message.numberOfPlayers, new BeginOfGame));
             client.emit('game_created', {
                 message: 'game created successfully',
                 gameId: games.length - 1,

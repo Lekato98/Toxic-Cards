@@ -1,7 +1,7 @@
 import { Card } from './card';
 
 export class CardStack {
-    private cards: Array<Card>;
+    private readonly cards: Array<Card>;
 
     constructor() {
         this.cards = new Array<Card>();
@@ -21,6 +21,10 @@ export class CardStack {
 
     public pick(): Card {
         return this.cards.pop();
+    }
+
+    public clear(): void {
+        this.cards.splice(0, this.getSize());
     }
 
     public isEmpty(): boolean {

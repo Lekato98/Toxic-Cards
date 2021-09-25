@@ -10,7 +10,7 @@ enum CardSuit {
 enum CardRank {
     TWO,
     THREE,
-    FOURE,
+    FOUR,
     FIVE,
     SIX,
     SEVEN,
@@ -55,7 +55,7 @@ export enum CardAbility {
 export abstract class CardUtil {
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
     public static readonly CARD_RANKS = [
-        CardRank.TWO, CardRank.THREE, CardRank.FOURE,
+        CardRank.TWO, CardRank.THREE, CardRank.FOUR,
         CardRank.FIVE, CardRank.SIX, CardRank.SEVEN,
         CardRank.EIGHT, CardRank.NINE, CardRank.TEN,
         CardRank.JACK, CardRank.QUEEN, CardRank.KING,
@@ -124,8 +124,18 @@ export abstract class CardUtil {
     /**
      * isBlack
      */
-    public static isBlack(card: Card): boolean {
-        return card.suit === CardSuit.CLUBS || card.suit === CardSuit.SPADES;
+    public static isBlack(suit: CardSuit): boolean;
+    public static isBlack(card: Card): boolean;
+    public static isBlack(paramOne: Card | CardSuit): boolean {
+        let suit: CardSuit;
+
+        if (paramOne instanceof Card) {
+            suit = paramOne.suit;
+        } else {
+            suit = paramOne;
+        }
+
+        return suit === CardSuit.CLUBS || suit === CardSuit.SPADES;
     }
 
     /**
@@ -138,15 +148,25 @@ export abstract class CardUtil {
     public static generateRandomId(): string {
         return nanoid(CardUtil.DEFAULT_ID_SIZE);
     }
+
+    public static swap(firstCard: Card, secondCard: Card): void {
+        const tempCard = CardUtil.clone(firstCard);
+        firstCard.copy(secondCard);
+        secondCard.copy(tempCard);
+    }
+
+    public static clone(card: Card): Card {
+        return {...card} as Card;
+    }
 }
 
 export class Card {
-    public readonly id: string;
-    public readonly suit: CardSuit;
-    public readonly rank: CardRank;
-    public readonly weight: CardWeight;
+    public id: string;
+    public suit: CardSuit;
+    public rank: CardRank;
+    public weight: CardWeight;
     private used: boolean;
-    private readonly ability: CardAbility;
+    private ability: CardAbility;
 
     // @todo maybe isUsed in creation should be false always
     constructor(suit: CardSuit, rank: CardRank, used: boolean = false) {
@@ -185,5 +205,14 @@ export class Card {
         }
 
         return this.ability;
+    }
+
+    public copy(card: Card): void {
+        this.id = card.id;
+        this.suit = card.suit;
+        this.rank = card.rank;
+        this.ability = card.ability;
+        this.used = card.used;
+        this.weight = card.weight;
     }
 }

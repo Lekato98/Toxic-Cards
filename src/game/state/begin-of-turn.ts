@@ -1,11 +1,11 @@
-import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { Action, Game, InvalidAction } from '../game';
 
-export class Burn implements State {
+export class BeginOfTurn implements State {
     action(context: Game, action: Action, payload?: UserActionPayload): void {
         switch (action) {
-            case Action.BURN_CARD:
-                return context.burnAction();
+            case Action.BEGIN_OF_TURN:
+                return context.beginOfTurnAction();
 
             default:
                 throw new InvalidAction;

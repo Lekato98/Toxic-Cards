@@ -15,7 +15,7 @@ export abstract class DeckUtil {
 }
 
 export class Deck {
-    private cards: Array<Card>;
+    private readonly cards: Array<Card>;
     private readonly numberOfDecks: number;
     private readonly MAX_NUMBER_OF_DECKS = 3;
     private readonly MIN_NUMBER_OF_DECKS = 1;
@@ -25,16 +25,22 @@ export class Deck {
             throw new Error('Number of decks exceed the limit');
         }
 
+        this.cards = new Array<Card>();
         this.numberOfDecks = numberOfDecks;
         this.reset();
     }
 
     public reset(): void {
-        this.cards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
+        const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
+        this.cards.splice(0, this.getSize());
+        while (newSetOfCards.length) {
+            this.cards.push(newSetOfCards.pop());
+        }
     }
 
     /**
      * Fisher Yate Algorithm for shuffle
+     * @todo move to utils class
      */
     public shuffle(): void {
         let currentIndex = this.getSize();

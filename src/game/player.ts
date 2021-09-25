@@ -40,4 +40,8 @@ export class Player {
         // @TODO add event
         this.user?.emit('', cards);
     }
+
+    public clearHand(): void {
+        this.handCards.clear();
+    }
 }
