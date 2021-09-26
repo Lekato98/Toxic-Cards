@@ -63,6 +63,8 @@ export enum JoinType {
 }
 
 export class Game {
+    private static autoCounter: number = 0;
+    public readonly id: number;
     public players: Array<Player>;
     public deck: Deck;
     public burnedCards: CardStack;
@@ -117,9 +119,10 @@ export class Game {
 
     constructor(maxNumberOfPlayers: number, state: State, creatorId: number = null) {
         if (!this.isValidMaxNumberOfPlayers(maxNumberOfPlayers)) {
-            throw new Error('Invalid maximum number of players');
+            throw new Error('Invalid number of players');
         }
 
+        this.id = Game.generateId();
         this.maxNumberOfPlayers = maxNumberOfPlayers;
         this.deck = new Deck();
         this.burnedCards = new CardStack();
@@ -137,6 +140,10 @@ export class Game {
         if (!Utils.isNullOrUndefined(creatorId)) {
             this.joinAsPlayerAction(creatorId, 0);
         }
+    }
+
+    public static generateId(): number {
+        return ++Game.autoCounter;
     }
 
     public initializePlayers(): void {
