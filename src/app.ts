@@ -37,7 +37,7 @@ gameNS.on('connection', (client: Socket) => {
             if (inGame.has(message.userId)) {
                 throw new Error('Player is already in game');
             }
-            games.push(new Game(message.numberOfPlayers, new BeginOfGame));
+            games.push(new Game(message.numberOfPlayers, BeginOfGame.getInstance()));
             client.emit('game_created', {
                 message: 'game created successfully',
                 gameId: games.length - 1,

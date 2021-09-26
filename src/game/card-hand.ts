@@ -29,7 +29,7 @@ export class CardHand {
     }
 
     public contains(card: Card): boolean {
-        return this.cards.some((_card: Card) => _card === card);
+        return this.cards.includes(card);
     }
 
     public getCardByOrder(order: number) {

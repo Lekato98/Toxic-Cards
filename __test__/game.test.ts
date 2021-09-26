@@ -12,6 +12,7 @@ import { EndOfGame } from '../src/game/state/end-of-game';
 import { ExchangeHandWithOther } from '../src/game/state/exchange-hand-with-other';
 import { ShowOneHandCard } from '../src/game/state/show-one-hand-card';
 import { ShowOneOtherHandCard } from '../src/game/state/show-one-other-hand-card';
+import { Deck } from '../src/game/deck';
 
 describe('Test Game', () => {
     const usersId = [0, 1, 2];
@@ -20,6 +21,14 @@ describe('Test Game', () => {
     test('Test InvalidAction Error', () => {
         const error = new InvalidAction();
         expect(error.message).toBeTruthy();
+    });
+
+    test('Create Game with creator id', () => {
+        const maxNumberOfPlayers = 5;
+        const initialState = BeginOfGame.getInstance();
+        const tGame = new Game(maxNumberOfPlayers, initialState, usersId[0]);
+        expect(tGame.leader).toBe(usersId[0]);
+        expect(tGame.numberOfPlayers).toBe(1);
     });
 
     test('Create Game with invalid number of players', () => {
@@ -41,6 +50,26 @@ describe('Test Game', () => {
         expect(game.leader).toBeNull();
         expect(game.passedBy).toBeNull();
         expect(game.players.length).toBe(maxNumberOfPlayers);
+    });
+
+    test('Spectator 1 JOIN_AS_SPECTATOR', () => {
+        const userId = 5;
+        game.action(Action.JOIN_AS_SPECTATOR, {userId});
+        expect(game.numberOfSpectators).toBe(1);
+        expect(game.isJoinedAsSpectator(userId)).toBeTruthy();
+    });
+
+    test('Spectator 1 LEAVE', () => {
+        const userId = 5;
+        game.action(Action.LEAVE, {userId});
+        expect(game.numberOfSpectators).toBe(0);
+        expect(game.isJoinedAsSpectator(userId)).toBeFalsy();
+    });
+
+    test('Spectator 1 invalid action trying to leave but already left LEAVE', () => {
+        const userId = 5;
+        const mock = () => game.action(Action.LEAVE, {userId});
+        expect(mock).toThrow(InvalidAction);
     });
 
     test('User 1 JOIN_AS_PLAYER', () => {
@@ -340,5 +369,19 @@ describe('Test Game', () => {
 
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(EndOfGame);
+    });
+
+    test('User 3 LEAVE', () => {
+        const userId = usersId[2];
+        const oldNumberOfPlayers = game.numberOfPlayers;
+        const newNumberOfPlayers = oldNumberOfPlayers - 1;
+        game.action(Action.LEAVE, {userId});
+        expect(game.numberOfPlayers).toBe(newNumberOfPlayers);
+        expect(game.isFull()).toBeFalsy();
+    });
+
+    test('Deck create invalid deck with negative size', () => {
+        const mock = () => new Deck(-1);
+        expect(mock).toThrow(Error);
     });
 });

@@ -1,4 +1,5 @@
 import { Card, CardUtil } from './card';
+import { Utils } from './utils';
 
 export abstract class DeckUtil {
     public static createDeckOfCardsNTimes(n: number = 1): Array<Card> {
@@ -50,7 +51,7 @@ export class Deck {
         while (currentIndex != 0) {
 
             // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
+            randomIndex = Utils.randomInteger(currentIndex);
             currentIndex--;
 
             // And swap it with the current element.
@@ -71,12 +72,8 @@ export class Deck {
         return this.cards.pop();
     }
 
-    public getCards(): Array<Card> {
-        return this.cards;
-    }
-
     public isValidNumberOfDecks(numberOfDecks: number): boolean {
-        return numberOfDecks <= this.MAX_NUMBER_OF_DECKS || numberOfDecks > this.MIN_NUMBER_OF_DECKS;
+        return  this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
     }
 
     public isEmpty(): boolean {

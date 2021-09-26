@@ -18,6 +18,7 @@ import { BeginOfGame } from './state/begin-of-game';
 import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
 import { User } from './user';
+import { Utils } from './utils';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -93,7 +94,7 @@ export class Game {
         Action.LEAVE,
     ];
     private readonly userPlayer: Map<number, Player>;
-    private readonly userSpectator: Map<number, User>;
+    private readonly userSpectator: Map<number, boolean>;
     private readonly jointType: Map<number, JoinType>;
     private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
     private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
@@ -114,7 +115,7 @@ export class Game {
         Action.BURN_ONE_HAND_CARD,
     ];
 
-    constructor(maxNumberOfPlayers: number, state: State) {
+    constructor(maxNumberOfPlayers: number, state: State, creatorId: number = null) {
         if (!this.isValidMaxNumberOfPlayers(maxNumberOfPlayers)) {
             throw new Error('Invalid maximum number of players');
         }
@@ -124,14 +125,18 @@ export class Game {
         this.burnedCards = new CardStack();
         this.pileOfCards = new CardStack();
         this.userPlayer = new Map<number, Player>();
+        this.userSpectator = new Map<number, boolean>();
         this.jointType = new Map<number, JoinType>();
         this.state = state;
         this.isGameStarted = false;
         this.pickedCard = null;
-        this.leader = null;
         this.passedBy = null;
+        this.leader = creatorId;
 
         this.initializePlayers();
+        if (!Utils.isNullOrUndefined(creatorId)) {
+            this.joinAsPlayerAction(creatorId, 0);
+        }
     }
 
     public initializePlayers(): void {
@@ -143,6 +148,10 @@ export class Game {
 
     public get numberOfPlayers(): number {
         return this.userPlayer.size;
+    }
+
+    public get numberOfSpectators(): number {
+        return this.userSpectator.size;
     }
 
     public setLeader(userId: number) {
@@ -171,12 +180,12 @@ export class Game {
         if (this.LEADER_BASED_ACTIONS.includes(action)) {
             return this.isLeaderUser(userId);
         } else if (this.USER_BASED_ACTION.includes(action)) {
-            return userId !== null && userId !== undefined;
+            return !Utils.isNullOrUndefined(userId);
         } else if (this.USER_TURN_BASED_ACTION.includes(action)) {
             return this.isUserTurn(userId);
         } else {
-            // todo check if needed
-            return (userId === null || userId === undefined) && this.INTERNAL_BASED_ACTION.includes(action);
+            // @todo check if needed
+            return Utils.isNullOrUndefined(userId) && this.INTERNAL_BASED_ACTION.includes(action);
         }
     }
 
@@ -254,8 +263,7 @@ export class Game {
 
     // @todo maybe rename (remove action from name)
     public selectFirstTurnAction() {
-        // @todo move logic to helper class
-        this.turn = Math.floor(Math.random() * this.players.length);
+        this.turn = Utils.randomIndex(this.players);
     }
 
     public pickCardFromPileAction() {
@@ -407,18 +415,17 @@ export class Game {
             this.setLeader(userId);
         }
 
+        this.players[playerId].markAsUser(userId);
         this.userPlayer.set(userId, this.players[playerId]);
         this.jointType.set(userId, JoinType.PLAYER);
     }
 
-    public joinAsSpectatorAction(user: User): void {
-        const userId = user.getId();
-        this.userSpectator.set(userId, user);
+    public joinAsSpectatorAction(userId: number): void {
+        this.userSpectator.set(userId, true);
         this.jointType.set(userId, JoinType.SPECTATOR);
     }
 
-    public leaveAction(user: User): void {
-        const userId = user.getId();
+    public leaveAction(userId: number): void {
         const jointType = this.jointType.get(userId);
 
         switch(jointType) {
@@ -435,6 +442,13 @@ export class Game {
         }
 
         this.jointType.delete(userId);
+        this.fixLeader(userId);
+    }
+
+    private fixLeader(userId: number): void {
+        if (userId === this.leader) {
+            // @todo set new leader
+        }
     }
 
     public getPlayerByUserId(userId: number): Player {
@@ -445,8 +459,12 @@ export class Game {
         return this.userPlayer.has(userId);
     }
 
+    public isJoinedAsSpectator(userId: number): boolean {
+        return this.userSpectator.has(userId);
+    }
+
     public isUserTurn(userId: number): boolean {
-        return this.turn === userId;
+        return this.turn === this.userPlayer.get(userId).id;
     }
 
     public isValidMaxNumberOfPlayers(numberOfPlayers: number): boolean {

@@ -6,25 +6,23 @@ export class Player {
     public readonly id: number;
     public handCards: CardHand;
     public score: number;
-    private user: User;
+    public isBot: boolean;
+    private userId: number;
 
-    constructor(id: number, user?: User) {
+    constructor(id: number, userId?: number) {
         this.id = id;
-        this.user = user;
         this.score = 0;
         this.handCards = new CardHand();
+
+        if (userId) {
+            this.markAsUser(userId);
+        } else {
+            this.markAsBot();
+        }
     }
 
     public addCardToHand(card: Card): void {
         this.handCards.add(card);
-    }
-
-    public isOwner(userId: number): boolean {
-        return this.user.getId() === userId;
-    }
-
-    public isCardOwner(card: Card): boolean {
-        return this.handCards.contains(card);
     }
 
     public getCard(cardId: string): Card {
@@ -40,7 +38,17 @@ export class Player {
         ];
 
         // @TODO add event
-        this.user?.emit('', cards);
+        // this.user?.emit('', cards);
+    }
+
+    public markAsBot(): void {
+        this.userId = null;
+        this.isBot = true;
+    }
+
+    public markAsUser(userId: number): void {
+        this.userId = userId;
+        this.isBot = false;
     }
 
     public clearHand(): void {
