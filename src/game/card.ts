@@ -8,19 +8,19 @@ export enum CardSuit {
 }
 
 export enum CardRank {
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
-    NINE,
-    TEN,
-    JACK,
-    QUEEN,
-    KING,
-    ACE,
+    TWO = 2,
+    THREE = 3,
+    FOUR = 4,
+    FIVE = 5,
+    SIX = 6,
+    SEVEN = 7,
+    EIGHT = 8,
+    NINE = 9,
+    TEN = 10,
+    JACK = 'J',
+    QUEEN = 'Q',
+    KING = 'K',
+    ACE = 'A',
 }
 
 enum CardWeight {
@@ -69,8 +69,9 @@ export abstract class CardUtil {
         }
 
         // get key of rank
-        const rankName = CardRank[rank];
-        return CardWeight[rankName];
+        // @todo find better solution
+        const rankName: CardWeight = CardRank[rank];
+        return CardWeight[rankName] as unknown as CardWeight;
     }
 
     public static getAbilityByRank(rank: CardRank): CardAbility {
@@ -201,6 +202,14 @@ export class Card {
     public getState(): any {
         return {
             id: this.id,
+        };
+    }
+
+    public toShow(): any {
+        return {
+            suit: this.suit,
+            rank: this.rank,
+            weight: this.weight,
         };
     }
 }

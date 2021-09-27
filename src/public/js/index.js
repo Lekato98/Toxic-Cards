@@ -47,11 +47,13 @@ players.forEach((_player, _index) => {
 })
 client.on('success', console.log);
 client.on('error', (message) => alert(message));
-client.on('status', (payload) => alert(payload.message));
+client.on('status', (payload) => alert(JSON.stringify(payload, null, 2)));
 client.on('update_state', (state) => {
     console.log(state);
     players.forEach((_player, _index) => {
         const [span] = _player.getElementsByTagName('span');
+        console.log(state.players[_index]?.id);
+        console.log(state.players[_index]?.userId);
         _player.id = state.players[_index]?.id ?? -1;
         span.innerText = state.players[_index]?.userId ?? 'Bot';
         const cards = Array.from(_player.getElementsByClassName('card'));

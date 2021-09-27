@@ -246,4 +246,12 @@ export abstract class GameSocketService {
         console.log(`Event ${event}, Room ${roomId}, Payload`, payload);
         GameSocketService.namespace.to(String(roomId)).emit(event, payload);
     }
+
+    public static emitUser(event: Event, userId: number, payload: any): void {
+        if (GameSocketService.userClients.has(userId)) {
+            console.log(`Event ${event}, User ${userId}, Payload`, payload);
+            const client = GameSocketService.userClients.get(userId);
+            client.emit(event, payload);
+        }
+    }
 }

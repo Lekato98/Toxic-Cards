@@ -1,6 +1,7 @@
 import { Card } from './card';
 import { CardHand } from './card-hand';
 import { Utils } from './utils';
+import { Event, GameSocketService } from '../socket/socket';
 
 export class Player {
     public readonly id: number;
@@ -37,8 +38,12 @@ export class Player {
             this.handCards.getCardByOrder(secondCard),
         ];
 
-        // @TODO add event
-        // this.user?.emit('', cards);
+        if (!this.isBot) {
+            GameSocketService.emitUser(Event.STATUS, this.userId, {
+                firstCard: cards[0].toShow(),
+                secondCard: cards[1].toShow(),
+            });
+        }
     }
 
     public markAsBot(): void {
@@ -58,7 +63,7 @@ export class Player {
     public getState(): any {
         return {
             id: this.id,
-            userid: this.userId,
+            userId: this.userId,
             handCards: this.handCards.getState(),
             isBot: this.isBot,
         };
