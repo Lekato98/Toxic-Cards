@@ -1,5 +1,4 @@
 import { Card, CardAbility, CardUtil } from './card';
-import { CardHand } from './card-hand';
 import { CardStack } from './card-stack';
 import { Deck } from './deck';
 import { Player } from './player';
@@ -14,10 +13,8 @@ import { ShowOneHandCard } from './state/show-one-hand-card';
 import { ShowOneOtherHandCard } from './state/show-one-other-hand-card';
 import { State, UserActionPayload } from './state/state';
 import { BeginOfTurn } from './state/begin-of-turn';
-import { BeginOfGame } from './state/begin-of-game';
 import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
-import { User } from './user';
 import { Utils } from './utils';
 
 export class InvalidAction extends Error {
@@ -29,7 +26,7 @@ export class InvalidAction extends Error {
 }
 
 export enum Action {
-    CREATE_GAME,
+    // CREATE_GAME,
     START_GAME,
     BEGIN_OF_ROUND,
     BEGIN_OF_TURN,
@@ -54,7 +51,7 @@ export enum Action {
     END_OF_GAME,
     RESTART,
     LEAVE,
-    NO_ACTION,
+    // NO_ACTION,
 }
 
 export enum JoinType {
@@ -198,7 +195,7 @@ export class Game {
 
     public action(action: Action, payload?: UserActionPayload) {
         if (!this.validateUsingActionBased(action, payload?.userId)) {
-            throw new InvalidAction;
+            throw new InvalidAction('Action is not allowed, invalid user type');
         }
 
         // global available actions
@@ -418,6 +415,10 @@ export class Game {
             throw new InvalidAction('The game is full, join another game');
         }
 
+        if (this.isJoinedAsSpectator(userId)) {
+            this.leaveAction(userId);
+        }
+
         if (!this.numberOfPlayers) {
             this.setLeader(userId);
         }
@@ -428,6 +429,10 @@ export class Game {
     }
 
     public joinAsSpectatorAction(userId: number): void {
+        if (this.isJoined(userId)) {
+            throw new InvalidAction(`User is already joined as ${this.jointType.get(userId)}`);
+        }
+
         this.userSpectator.set(userId, true);
         this.jointType.set(userId, JoinType.SPECTATOR);
     }
@@ -483,10 +488,14 @@ export class Game {
     }
 
     public isValidPlayer(playerId: number): boolean {
-        return 0 <= playerId && playerId < this.players.length;
+        return 0 <= playerId && playerId < this.players.length && this.players[playerId].isBot;
     }
 
     public isFull(): boolean {
         return this.numberOfPlayers === this.maxNumberOfPlayers;
+    }
+
+    public isJoined(userId: number): boolean {
+        return this.jointType.has(userId);
     }
 }

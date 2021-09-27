@@ -100,7 +100,7 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (this.isInGame(userId)) {
-                    throw new Error('User is already in game');
+                    return GameSocketService.handleError(client, new Error('User is already in game'));
                 }
 
                 const {numberOfPlayers} = payload;
@@ -118,13 +118,13 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (this.isInGame(userId)) {
-                    throw new Error('User is already in game');
+                    return GameSocketService.handleError(client, new Error('User is already in game'));
                 }
 
                 const {gameId, playerId} = payload;
 
                 if (!this.isGameAvailable(gameId)) {
-                    throw new Error('Game not found.');
+                    return GameSocketService.handleError(client, new Error('Game not found.'));
                 }
 
                 const game = GameSocketService.games.get(gameId);
@@ -142,7 +142,7 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (!GameSocketService.isInGame(userId)) {
-                    throw new Error('User is not in game');
+                    return GameSocketService.handleError(client, new Error('User is not in game'));
                 }
 
                 const {action, ...actionPayload} = payload;

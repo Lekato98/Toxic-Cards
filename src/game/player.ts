@@ -1,6 +1,5 @@
 import { Card } from './card';
 import { CardHand } from './card-hand';
-import { User } from './user';
 
 export class Player {
     public readonly id: number;

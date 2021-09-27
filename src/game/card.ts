@@ -63,9 +63,6 @@ export abstract class CardUtil {
     ];
     private static readonly DEFAULT_ID_SIZE = 6;
 
-    /**
-     * getWeight
-     */
     public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
         if (rank === CardRank.KING) {
             return CardUtil.isRed(suit) ? CardWeight.RED_KING : CardWeight.BLACK_KING;
@@ -76,9 +73,6 @@ export abstract class CardUtil {
         return CardWeight[rankName];
     }
 
-    /**
-     * getAbility
-     */
     public static getAbilityByRank(rank: CardRank): CardAbility {
         switch (rank) {
             case CardRank.SEVEN:
@@ -97,16 +91,10 @@ export abstract class CardUtil {
         }
     }
 
-    /**
-     * getColor
-     */
     public static getColor(card: Card): CardColor {
         return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK;
     }
 
-    /**
-     * isRed
-     */
     public static isRed(suit: CardSuit): boolean;
     public static isRed(card: Card): boolean;
     public static isRed(paramOne: Card | CardSuit): boolean {
@@ -121,9 +109,6 @@ export abstract class CardUtil {
         return suit === CardSuit.DIAMONDS || suit === CardSuit.HEARTS;
     }
 
-    /**
-     * isBlack
-     */
     public static isBlack(suit: CardSuit): boolean;
     public static isBlack(card: Card): boolean;
     public static isBlack(paramOne: Card | CardSuit): boolean {
@@ -138,9 +123,6 @@ export abstract class CardUtil {
         return suit === CardSuit.CLUBS || suit === CardSuit.SPADES;
     }
 
-    /**
-     * isKing
-     */
     public static isKing(card: Card): boolean {
         return card.rank === CardRank.KING;
     }

@@ -40,7 +40,7 @@ export class Deck {
     }
 
     /**
-     * Fisher Yate Algorithm for shuffle
+     * Fisher Yates Algorithm for shuffle
      * @todo move to utils class
      */
     public shuffle(): void {

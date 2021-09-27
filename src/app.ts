@@ -3,10 +3,8 @@ import { Express, Request, Response } from 'express';
 import * as http from 'http';
 import * as helmet from 'helmet';
 import * as cors from 'cors';
-import { Namespace, Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { ioConfig } from './config';
-import { Action, Game } from './game/game';
-import { BeginOfGame } from './game/state/begin-of-game';
 import { GameSocketService } from './socket/socket';
 
 const app: Express = express();
