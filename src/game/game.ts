@@ -16,6 +16,7 @@ import { BeginOfTurn } from './state/begin-of-turn';
 import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
 import { Utils } from './utils';
+import { Event, GameSocketService } from '../socket/socket';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -175,7 +176,7 @@ export class Game {
             this.action(Action.BEGIN_OF_TURN);
         } else if (this.state instanceof EndOfTurn) {
             this.action(Action.END_OF_TURN);
-        } else if (this.state instanceof  EndOfGame) {
+        } else if (this.state instanceof EndOfGame) {
             this.action(Action.END_OF_GAME);
         }
     }
@@ -204,16 +205,17 @@ export class Game {
                 return this.joinAsPlayerAction(payload.userId, payload.playerId);
 
             case Action.JOIN_AS_SPECTATOR:
-                return  this.joinAsSpectatorAction(payload.userId);
+                return this.joinAsSpectatorAction(payload.userId);
 
             case Action.LEAVE:
-                return  this.leaveAction(payload.userId);
+                return this.leaveAction(payload.userId);
 
             case Action.PASS:
                 return this.passAction();
 
             default:
                 this.state.action(this, action, payload);
+                GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
         }
     }
 
@@ -430,7 +432,7 @@ export class Game {
 
     public joinAsSpectatorAction(userId: number): void {
         if (this.isJoined(userId)) {
-            throw new InvalidAction(`User is already joined as ${this.jointType.get(userId)}`);
+            throw new InvalidAction(`User is already joined as ${ this.jointType.get(userId) }`);
         }
 
         this.userSpectator.set(userId, true);
@@ -440,7 +442,7 @@ export class Game {
     public leaveAction(userId: number): void {
         const jointType = this.jointType.get(userId);
 
-        switch(jointType) {
+        switch (jointType) {
             case JoinType.PLAYER:
                 this.userPlayer.delete(userId);
                 break;
@@ -465,6 +467,21 @@ export class Game {
 
     public getPlayerByUserId(userId: number): Player {
         return this.userPlayer.get(userId);
+    }
+
+    public getState(): any {
+        return {
+            id: this.id,
+            leader: this.leader,
+            players: this.players.map((_player) => _player.getState()),
+            numberOfPlayers: this.numberOfPlayers,
+            numberOfSpectators: this.numberOfSpectators,
+            state: this.state.constructor.name,
+            turn: this.turn,
+            topBurnedCards: this.burnedCards.top,
+            passedBy: this.passedBy,
+            isGameStarted: this.isGameStarted,
+        };
     }
 
     public isJoinedAsPlayer(userId: number): boolean {

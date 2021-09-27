@@ -5,7 +5,7 @@ import { Action, Game } from '../game/game';
 import { BeginOfGame } from '../game/state/begin-of-game';
 import * as chalk from 'chalk';
 
-enum Event {
+export enum Event {
     CONNECTION = 'connection',
     PING = 'ping',
     PONG = 'pong',
@@ -14,6 +14,7 @@ enum Event {
     JOIN_GAME = 'join_game',
     ACTION = 'action',
     LEAVE_GAME = 'leave_game',
+    UPDATE_STATE = 'update_state',
     RECONNECT = 'reconnect',
     ERROR = 'error',
     DISCONNECT = 'disconnect',
@@ -53,7 +54,7 @@ export abstract class GameSocketService {
         const query = client.handshake.query;
         console.log(`Authorizing token: `, token);
         console.log(`Authorizing query: `, query);
-        const userId = ~~(token.userId || query.userId);
+        const userId = ~~(token.userId ?? query.userId);
         // @todo use jwt later
         if (Utils.isNullOrUndefined(userId)) {
             return next(new Error('Unauthorized'));
@@ -88,7 +89,7 @@ export abstract class GameSocketService {
             const [event, ...payload] = args;
             console.log(
                 chalk.blue('~GAME_EVENT'),
-                'namespace:', 'NamespacePrefix.GAME',
+                'namespace:', NamespacePrefix.GAME,
                 ', event:', chalk.green(event.toUpperCase()),
                 ', payload:', payload,
             );
@@ -192,5 +193,10 @@ export abstract class GameSocketService {
     private static handleError(client: Socket, err: Error): void {
         console.error(err);
         client.emit(Event.ERROR, err.message);
+    }
+
+    public static emitRoom(event: Event, roomId: string | number, payload: any): void {
+        console.log(`Event ${event}, Room ${roomId}, Payload`, payload);
+        GameSocketService.namespace.to(String(roomId)).emit(event, payload);
     }
 }

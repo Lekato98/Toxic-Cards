@@ -197,4 +197,10 @@ export class Card {
         this.used = card.used;
         this.weight = card.weight;
     }
+
+    public getState(): any {
+        return {
+            id: this.id,
+        };
+    }
 }

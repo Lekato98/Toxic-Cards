@@ -44,6 +44,12 @@ export class CardHand {
         this.cards.splice(0, this.getSize());
     }
 
+    public getState(): any {
+        return {
+            cards: this.cards.map((_card) => _card.getState()),
+        };
+    }
+
     public isValidOrder(order: number): boolean {
         return 0 <= order && order < this.getSize();
     }

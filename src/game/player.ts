@@ -53,4 +53,13 @@ export class Player {
     public clearHand(): void {
         this.handCards.clear();
     }
+
+    public getState(): any {
+        return {
+            id: this.id,
+            userid: this.userId,
+            handCards: this.handCards.getState(),
+            isBot: this.isBot,
+        };
+    }
 }
