@@ -1,16 +1,16 @@
 import { nanoid } from 'nanoid';
 
-enum CardSuit {
+export enum CardSuit {
     CLUBS = 'C',
     DIAMONDS = 'D',
     HEARTS = 'H',
     SPADES = 'S',
 }
 
-enum CardRank {
+export enum CardRank {
     TWO,
     THREE,
-    FOURE,
+    FOUR,
     FIVE,
     SIX,
     SEVEN,
@@ -40,7 +40,7 @@ enum CardWeight {
     ACE = 1,
 }
 
-enum CardColor {
+export enum CardColor {
     RED = 'red',
     BLACK = 'black',
 }
@@ -55,7 +55,7 @@ export enum CardAbility {
 export abstract class CardUtil {
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
     public static readonly CARD_RANKS = [
-        CardRank.TWO, CardRank.THREE, CardRank.FOURE,
+        CardRank.TWO, CardRank.THREE, CardRank.FOUR,
         CardRank.FIVE, CardRank.SIX, CardRank.SEVEN,
         CardRank.EIGHT, CardRank.NINE, CardRank.TEN,
         CardRank.JACK, CardRank.QUEEN, CardRank.KING,
@@ -63,9 +63,6 @@ export abstract class CardUtil {
     ];
     private static readonly DEFAULT_ID_SIZE = 6;
 
-    /**
-     * getWeight
-     */
     public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
         if (rank === CardRank.KING) {
             return CardUtil.isRed(suit) ? CardWeight.RED_KING : CardWeight.BLACK_KING;
@@ -76,9 +73,6 @@ export abstract class CardUtil {
         return CardWeight[rankName];
     }
 
-    /**
-     * getAbility
-     */
     public static getAbilityByRank(rank: CardRank): CardAbility {
         switch (rank) {
             case CardRank.SEVEN:
@@ -97,16 +91,10 @@ export abstract class CardUtil {
         }
     }
 
-    /**
-     * getColor
-     */
     public static getColor(card: Card): CardColor {
         return CardUtil.isRed(card) ? CardColor.RED : CardColor.BLACK;
     }
 
-    /**
-     * isRed
-     */
     public static isRed(suit: CardSuit): boolean;
     public static isRed(card: Card): boolean;
     public static isRed(paramOne: Card | CardSuit): boolean {
@@ -121,16 +109,20 @@ export abstract class CardUtil {
         return suit === CardSuit.DIAMONDS || suit === CardSuit.HEARTS;
     }
 
-    /**
-     * isBlack
-     */
-    public static isBlack(card: Card): boolean {
-        return card.suit === CardSuit.CLUBS || card.suit === CardSuit.SPADES;
+    public static isBlack(suit: CardSuit): boolean;
+    public static isBlack(card: Card): boolean;
+    public static isBlack(paramOne: Card | CardSuit): boolean {
+        let suit: CardSuit;
+
+        if (paramOne instanceof Card) {
+            suit = paramOne.suit;
+        } else {
+            suit = paramOne;
+        }
+
+        return suit === CardSuit.CLUBS || suit === CardSuit.SPADES;
     }
 
-    /**
-     * isKing
-     */
     public static isKing(card: Card): boolean {
         return card.rank === CardRank.KING;
     }
@@ -138,15 +130,25 @@ export abstract class CardUtil {
     public static generateRandomId(): string {
         return nanoid(CardUtil.DEFAULT_ID_SIZE);
     }
+
+    public static swap(firstCard: Card, secondCard: Card): void {
+        const tempCard = CardUtil.clone(firstCard);
+        firstCard.copy(secondCard);
+        secondCard.copy(tempCard);
+    }
+
+    public static clone(card: Card): Card {
+        return {...card} as Card;
+    }
 }
 
 export class Card {
-    public readonly id: string;
-    public readonly suit: CardSuit;
-    public readonly rank: CardRank;
-    public readonly weight: CardWeight;
+    public id: string;
+    public suit: CardSuit;
+    public rank: CardRank;
+    public weight: CardWeight;
     private used: boolean;
-    private readonly ability: CardAbility;
+    private ability: CardAbility;
 
     // @todo maybe isUsed in creation should be false always
     constructor(suit: CardSuit, rank: CardRank, used: boolean = false) {
@@ -185,5 +187,14 @@ export class Card {
         }
 
         return this.ability;
+    }
+
+    public copy(card: Card): void {
+        this.id = card.id;
+        this.suit = card.suit;
+        this.rank = card.rank;
+        this.ability = card.ability;
+        this.used = card.used;
+        this.weight = card.weight;
     }
 }

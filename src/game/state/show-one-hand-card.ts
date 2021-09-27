@@ -6,7 +6,20 @@ interface ShowOneHandCardActionPayload extends UserActionPayload {
 }
 
 export class ShowOneHandCard implements State {
-    action(context: Game, action: Action, payload?: ShowOneHandCardActionPayload): void {
+    private static instance: ShowOneHandCard;
+
+    private constructor() {}
+
+    public static getInstance(): ShowOneHandCard {
+        if (!this.instance) {
+            this.instance = new ShowOneHandCard();
+        }
+
+        return this.instance;
+    }
+
+    // @todo remove any
+    public action(context: Game, action: Action, payload?: ShowOneHandCardActionPayload): void {
         switch (action) {
             case Action.SHOW_ONE_HAND_CARD:
                 return context.showOneHandCardAction(payload.userId, payload.cardId);

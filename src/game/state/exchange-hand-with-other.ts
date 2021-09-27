@@ -8,7 +8,19 @@ interface ExchangeHandWithOtherActionPayload extends UserActionPayload {
 }
 
 export class ExchangeHandWithOther implements State {
-    action(context: Game, action: Action, payload?: ExchangeHandWithOtherActionPayload): void {
+    private static instance: ExchangeHandWithOther;
+
+    private constructor() {}
+
+    public static getInstance(): ExchangeHandWithOther {
+        if (!this.instance) {
+            this.instance = new ExchangeHandWithOther();
+        }
+
+        return this.instance;
+    }
+
+    public action(context: Game, action: Action, payload?: ExchangeHandWithOtherActionPayload): void {
         switch (action) {
             case Action.EXCHANGE_HAND_WITH_OTHER:
                 return context.exchangeHandWithOther(

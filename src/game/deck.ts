@@ -1,4 +1,5 @@
 import { Card, CardUtil } from './card';
+import { Utils } from './utils';
 
 export abstract class DeckUtil {
     public static createDeckOfCardsNTimes(n: number = 1): Array<Card> {
@@ -15,7 +16,7 @@ export abstract class DeckUtil {
 }
 
 export class Deck {
-    private cards: Array<Card>;
+    private readonly cards: Array<Card>;
     private readonly numberOfDecks: number;
     private readonly MAX_NUMBER_OF_DECKS = 3;
     private readonly MIN_NUMBER_OF_DECKS = 1;
@@ -25,16 +26,22 @@ export class Deck {
             throw new Error('Number of decks exceed the limit');
         }
 
+        this.cards = new Array<Card>();
         this.numberOfDecks = numberOfDecks;
         this.reset();
     }
 
     public reset(): void {
-        this.cards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
+        const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
+        this.cards.splice(0, this.getSize());
+        while (newSetOfCards.length) {
+            this.cards.push(newSetOfCards.pop());
+        }
     }
 
     /**
-     * Fisher Yate Algorithm for shuffle
+     * Fisher Yates Algorithm for shuffle
+     * @todo move to utils class
      */
     public shuffle(): void {
         let currentIndex = this.getSize();
@@ -44,7 +51,7 @@ export class Deck {
         while (currentIndex != 0) {
 
             // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
+            randomIndex = Utils.randomInteger(currentIndex);
             currentIndex--;
 
             // And swap it with the current element.
@@ -65,12 +72,8 @@ export class Deck {
         return this.cards.pop();
     }
 
-    public getCards(): Array<Card> {
-        return this.cards;
-    }
-
     public isValidNumberOfDecks(numberOfDecks: number): boolean {
-        return numberOfDecks <= this.MAX_NUMBER_OF_DECKS || numberOfDecks > this.MIN_NUMBER_OF_DECKS;
+        return  this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
     }
 
     public isEmpty(): boolean {

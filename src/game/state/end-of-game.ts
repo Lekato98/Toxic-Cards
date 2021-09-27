@@ -1,14 +1,14 @@
-import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { Action, Game, InvalidAction } from '../game';
 
-export class Burn implements State {
-    private static instance: Burn;
+export class EndOfGame implements State {
+    private static instance: EndOfGame;
 
     private constructor() {}
 
-    public static getInstance(): Burn {
+    public static getInstance(): EndOfGame {
         if (!this.instance) {
-            this.instance = new Burn();
+            this.instance = new EndOfGame();
         }
 
         return this.instance;
@@ -16,11 +16,12 @@ export class Burn implements State {
 
     public action(context: Game, action: Action, payload?: UserActionPayload): void {
         switch (action) {
-            case Action.BURN_CARD:
-                return context.burnAction();
+            case Action.END_OF_GAME:
+                return context.endOfGameAction();
 
             default:
                 throw new InvalidAction;
         }
     }
+
 }

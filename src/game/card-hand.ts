@@ -1,7 +1,7 @@
 import { Card } from './card';
 
 export class CardHand {
-    private cards: Array<Card>;
+    private readonly cards: Array<Card>;
 
     constructor() {
         this.cards = new Array<Card>();
@@ -20,7 +20,8 @@ export class CardHand {
     }
 
     public remove(card: Card): void {
-        this.cards = this.cards.filter((_card: Card) => _card === card);
+        const index = this.cards.findIndex((_card: Card) => _card === card);
+        this.cards.splice(index, 1);
     }
 
     public getCard(cardId: string): Card {
@@ -28,19 +29,19 @@ export class CardHand {
     }
 
     public contains(card: Card): boolean {
-        return this.cards.some((_card: Card) => _card === card);
-    }
-
-    public hsaCard(cardId: string): boolean {
-        return this.cards.some((_card: Card) => _card.id === cardId);
+        return this.cards.includes(card);
     }
 
     public getCardByOrder(order: number) {
         if (!this.isValidOrder(order)) {
-            throw new Error('Invalid card order excced the limit');
+            throw new Error('Invalid card order exceed the limit');
         }
 
         return this.cards[order];
+    }
+
+    public clear(): void {
+        this.cards.splice(0, this.getSize());
     }
 
     public isValidOrder(order: number): boolean {
