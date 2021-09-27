@@ -136,7 +136,7 @@ export class Game {
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
-            this.joinAsPlayerAction(creatorId, 0);
+            this.joinAsPlayerAction(creatorId);
         }
     }
 
@@ -292,6 +292,10 @@ export class Game {
         }
 
         const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Invalid picked card');
+        }
+
         const card = player.getCard(cardId);
         const topBurnedCard = this.burnedCards.top;
         if (card.equalsRank(topBurnedCard)) {
@@ -327,6 +331,10 @@ export class Game {
 
     public exchangePickWithHandAction(userId: number, cardId: string) {
         const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Pick a valid card');
+        }
+
         const card = player.getCard(cardId);
         const pickedCard = this.pickedCard;
         CardUtil.swap(card, pickedCard);
@@ -334,11 +342,13 @@ export class Game {
     }
 
     public exchangeHandWithOther(userId: number, cardId: string, otherPlayerId: number, otherCardId: string) {
-        if (this.isValidPlayer(otherPlayerId)) {
+        if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
             const player = this.userPlayer.get(userId);
             const otherPlayer = this.players[otherPlayerId];
             if (player === otherPlayer) {
                 throw new InvalidAction('Changing card with your self is not allowed');
+            } else if (!this.isValidPlayerCard(player.id, cardId)) {
+                throw new InvalidAction('Pick a valid card');
             }
 
             const playerCard = player.getCard(cardId);
@@ -351,13 +361,18 @@ export class Game {
     }
 
     public showOneHandCardAction(userId: number, cardId: string) {
-        const card = this.userPlayer.get(userId).getCard(cardId);
+        const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Pick a valid card');
+        }
+
+        const card = player.getCard(cardId);
         // emit with card suit, rank
         this.setState(Burn.getInstance());
     }
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
-        if (this.isValidPlayer(otherPlayerId)) {
+        if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
             const card = this.players[otherPlayerId].getCard(otherCardId);
             // emit with card suit, rank
             this.setState(Burn.getInstance());
@@ -404,11 +419,16 @@ export class Game {
         // @todo reset
     }
 
-    public joinAsPlayerAction(userId: number, playerId: number): void {
+    public joinAsPlayerAction(userId: number, playerId?: number): void {
         if (this.isJoinedAsPlayer(userId)) {
             throw new InvalidAction('Player already joined');
         }
 
+        if (Utils.isNullOrUndefined(playerId)) {
+            playerId = this.players.find((_player) => _player.isBot)?.id;
+        }
+        console.log(this.players);
+        console.log(playerId);
         if (!this.isValidPlayer(playerId)) { // @todo check if the player is already taken
             throw new InvalidAction('Invalid position or already taken');
         }
@@ -478,7 +498,7 @@ export class Game {
             numberOfSpectators: this.numberOfSpectators,
             state: this.state.constructor.name,
             turn: this.turn,
-            topBurnedCards: this.burnedCards.top,
+            topBurnedCards: {...this.burnedCards.top, id: undefined},
             passedBy: this.passedBy,
             isGameStarted: this.isGameStarted,
         };
@@ -506,6 +526,10 @@ export class Game {
 
     public isValidPlayer(playerId: number): boolean {
         return 0 <= playerId && playerId < this.players.length && this.players[playerId].isBot;
+    }
+
+    public isValidPlayerCard(playerId: number, cardId: string): boolean {
+        return !Utils.isNullOrUndefined(this.players[playerId]?.handCards.getCard(cardId));
     }
 
     public isFull(): boolean {

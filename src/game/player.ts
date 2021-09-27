@@ -1,5 +1,6 @@
 import { Card } from './card';
 import { CardHand } from './card-hand';
+import { Utils } from './utils';
 
 export class Player {
     public readonly id: number;
@@ -13,7 +14,7 @@ export class Player {
         this.score = 0;
         this.handCards = new CardHand();
 
-        if (userId) {
+        if (!Utils.isNullOrUndefined(userId)) {
             this.markAsUser(userId);
         } else {
             this.markAsBot();

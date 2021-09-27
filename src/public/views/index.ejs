@@ -10,64 +10,65 @@
             integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
             crossorigin="anonymous"></script>
     <title>Playing card</title>
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0 0;
-            padding: 0 0;
-        }
-
-        .bg {
-            /* The image used */
-            background-image: url('images/bg.jpg');
-
-            /* Full height */
-            height: 100%;
-
-            /* Center and scale the image nicely */
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-    </style>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<script>
-    const userId = ~~prompt('userId', '0');
-    const client = io('localhost:3000/game', {auth: {userId}});
-    client.on('success', console.log);
-    client.on('error', (message) => alert(message));
-    client.on('update_state', console.log);
+<div class="bg">
+    <button onclick="createGame()">Create game</button>
+    <button onclick="joinGame()">Join game</button>
+    <button onclick="joinQueue()">Join queue</button>
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="doAction()">Action</button>
+    <div id="ping" style="color:green;position:fixed;top:0;left:0;margin: 5px">0ms</div>
+    <div class="lalo">
+        <div id="countdown">
+            <div id="countdown-number"></div>
+            <svg>
+                <circle r="18" cx="20" cy="20"></circle>
+            </svg>
+        </div>
+    </div>
+    <div class="container">
 
-    function createGame() {
-        client.emit('create_game', {numberOfPlayers: 3});
-    }
+        <div class="player p1">
+            <span>1</span>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+        </div>
 
-    function joinGame() {
-        const [gameId, playerId] = prompt('enter game_id, player_id', 'game_id,player_id').split(',');
-        client.emit('join_game', {
-            gameId: ~~gameId,
-            playerId: ~~playerId
-        });
-    }
+        <div class="player p2">
+            <span>2</span>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+        </div>
 
-    function startGame() {
-        client.emit('action', {action: 0});
-    }
+        <div class="player p3">
+            <span>3</span>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+        </div>
 
-    function doAction() {
-        const params = prompt('Action number,cardId,otherPlayerId,otherCardId', '0-22,xx,xx,xx').split(',');
-        const action = ~~params[0];
-        const cardId = params[1];
-        const otherPlayerId = ~~params[2];
-        const otherCardId = params[3];
-        client.emit('action', {action, cardId, otherPlayerId, otherCardId});
-    }
-</script>
-<button onclick="createGame()">Create game</button>
-<button onclick="joinGame()">Join game</button>
-<button onclick="startGame()">Start Game</button>
-<button onclick="doAction()">Action</button>
-<div class="bg"></div>
+        <div class="player p4">
+            <span>4</span>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+        </div>
+
+        <div class="deck">
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+        </div>
+    </div>
+
+    <script src="js/index.js"></script>
+</div>
 </body>
 </html>
