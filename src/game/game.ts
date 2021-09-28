@@ -427,9 +427,8 @@ export class Game {
         if (Utils.isNullOrUndefined(playerId)) {
             playerId = this.players.find((_player) => _player.isBot)?.id;
         }
-        console.log(this.players);
-        console.log(playerId);
-        if (!this.isValidPlayer(playerId)) { // @todo check if the player is already taken
+
+        if (!this.isValidPositionToJoin(playerId)) {
             throw new InvalidAction('Invalid position or already taken');
         }
 
@@ -525,11 +524,15 @@ export class Game {
     }
 
     public isValidPlayer(playerId: number): boolean {
-        return 0 <= playerId && playerId < this.players.length && this.players[playerId].isBot;
+        return 0 <= playerId && playerId < this.players.length;
+    }
+
+    public isValidPositionToJoin(playerId: number): boolean {
+        return this.isValidPlayer(playerId) && this.players[playerId].isBot;
     }
 
     public isValidPlayerCard(playerId: number, cardId: string): boolean {
-        return !Utils.isNullOrUndefined(this.players[playerId]?.handCards.getCard(cardId));
+        return this.isValidPlayer(playerId) && !Utils.isNullOrUndefined(this.players[playerId].handCards.getCard(cardId));
     }
 
     public isFull(): boolean {

@@ -13,10 +13,13 @@ import { ExchangeHandWithOther } from '../src/game/state/exchange-hand-with-othe
 import { ShowOneHandCard } from '../src/game/state/show-one-hand-card';
 import { ShowOneOtherHandCard } from '../src/game/state/show-one-other-hand-card';
 import { Deck } from '../src/game/deck';
+import { GameSocketService } from '../src/socket/socket';
 
 describe('Test Game', () => {
     const usersId = [0, 1, 2];
     let game: Game;
+    GameSocketService.emitRoom = () => ({});
+    GameSocketService.emitUser = () => ({});
 
     test('Test InvalidAction Error', () => {
         const error = new InvalidAction();
@@ -317,7 +320,8 @@ describe('Test Game', () => {
 
     test('Third Turn User 1 pick pile card the use ability PICK_BURN', () => {
         const userId = game.turn;
-        const randomCard = game.getPlayerByUserId(userId).handCards.getCardByOrder(1);
+        const player = game.getPlayerByUserId(userId);
+        const randomCard = player.handCards.getCardByOrder(1);
         const cardId = randomCard.id;
         const otherPlayerId = (userId + 1) % 3;
         const randomPlayer = game.getPlayerByUserId(otherPlayerId);
@@ -351,12 +355,13 @@ describe('Test Game', () => {
         expect(game.state).toBeInstanceOf(ExchangeHandWithOther);
         game.action(Action.EXCHANGE_HAND_WITH_OTHER, {userId, cardId, otherPlayerId, otherCardId});
 
+        // cardId becomes otherCardId and vice versa
         game.setState(PilePicked.getInstance());
         game.pickedCard = new Card(CardSuit.CLUBS, CardRank.SEVEN);
         game.action(Action.THROW_CARD, {userId});
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(ShowOneHandCard);
-        game.action(Action.SHOW_ONE_HAND_CARD, {userId, cardId});
+        game.action(Action.SHOW_ONE_HAND_CARD, {userId, cardId: otherCardId});
 
         game.setState(PilePicked.getInstance());
         game.pickedCard = new Card(CardSuit.CLUBS, CardRank.TEN);
@@ -365,7 +370,7 @@ describe('Test Game', () => {
         game.action(Action.THROW_CARD, {userId});
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(ShowOneOtherHandCard);
-        game.action(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId});
+        game.action(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId: cardId});
 
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(EndOfGame);
