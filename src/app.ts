@@ -9,16 +9,18 @@ import { GameSocketService } from './socket/socket';
 import * as path from 'path';
 
 const app: Express = express();
-const server: http.Server = http.createServer(app);
-
-const io: Server = new Server(server, ioConfig);
-GameSocketService.init(io);
 
 app.use(cors());
+// @todo give access for socket.io cdn
 // app.use(helmet());
 app.use(express.static(path.join(__dirname, '/public')));
 app.set('views', path.join(__dirname, '/public/views'));
 app.set('view engine', 'ejs');
 app.get('/', (req: Request, res: Response) => res.render('index'));
 
-server.listen(3000, () => console.log('server listening to *:3000'));
+void function bootstrap(app: Express): void {
+    const server: http.Server = http.createServer(app);
+    const io: Server = new Server(server, ioConfig);
+    GameSocketService.init(io);
+    server.listen(3000, () => console.log('server listening to *:3000'));
+}(app);

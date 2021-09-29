@@ -140,7 +140,6 @@ export abstract class GameSocketService {
                 const game = GameSocketService.games.get(gameId);
                 game.action(Action.JOIN_AS_PLAYER, {userId, playerId});
                 GameSocketService.registerClient(client, game);
-                GameSocketService.namespace.to(String(game.id)).emit(Event.SUCCESS, {message: `${userId} just joined the game!`});
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -151,7 +150,7 @@ export abstract class GameSocketService {
         client.on(Event.JOIN_QUEUE, () => {
             try {
                 const {userId} = client.data;
-                let game;
+                let game: Game;
                 GameSocketService.games.forEach((_game) => {
                     if (!_game.isFull()) {
                         return game = _game;
@@ -159,7 +158,8 @@ export abstract class GameSocketService {
                 });
 
                 if (game) {
-                    return game.joinAsPlayerAction(userId)
+                    game.action(Action.JOIN_AS_PLAYER, {userId});
+                    return GameSocketService.registerClient(client, game);
                 }
 
                 GameSocketService.handleError(client, new Error('All games are full create new game...'));
@@ -174,7 +174,7 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (!GameSocketService.isInGame(userId)) {
-                    return GameSocketService.handleError(client, new Error('User is not in game'));
+                    return GameSocketService.handleError(client, new Error(`User#${userId} is not in game`));
                 }
 
                 const {action, ...actionPayload} = payload;
@@ -191,6 +191,10 @@ export abstract class GameSocketService {
         client.on(Event.LEAVE_GAME, () => {
             try {
                 const {userId} = client.data;
+                if (!this.isInGame(userId)) {
+                    return GameSocketService.handleError(client, new Error('User is not in game'));
+                }
+
                 const game = this.userGames.get(userId);
                 const gameId = String(game.id);
                 game.action(Action.LEAVE, {userId});
@@ -217,8 +221,9 @@ export abstract class GameSocketService {
     private static registerClient(client: Socket, game: Game): void {
         const {userId} = client.data;
         const gameId = String(game.id);
-        GameSocketService.userGames.set(userId, game);
-        client.join(gameId);
+        client.join(gameId); // join client to room of game
+        GameSocketService.userGames.set(userId, game); // assign userId to map game
+        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just joined the game!`}); // broadcast message to room members
     }
 
     public static reconnect(client: Socket): void {

@@ -8,6 +8,9 @@ export class Player {
     public handCards: CardHand;
     public score: number;
     public isBot: boolean;
+    // if player reach -100 score or left the game
+    // or if the game start and there is missing players
+    public isOut: boolean;
     private userId: number;
 
     constructor(id: number, userId?: number) {
@@ -54,6 +57,14 @@ export class Player {
     public markAsUser(userId: number): void {
         this.userId = userId;
         this.isBot = false;
+    }
+
+    public getUserId(): number {
+        return this.userId;
+    }
+
+    public markAsOut(): void {
+        this.isOut = true;
     }
 
     public clearHand(): void {

@@ -273,7 +273,10 @@ export class Game {
     }
 
     public pickCardFromPileAction() {
-        this.pickedCard = this.pileOfCards.pick();
+        const pickedCard = this.pileOfCards.pick();
+        this.pickedCard = pickedCard;
+        const userId = this.players[this.turn].getUserId();
+        GameSocketService.emitUser(Event.STATUS, userId, {pickedCard: pickedCard.toShow()});
         this.setState(PilePicked.getInstance());
     }
 

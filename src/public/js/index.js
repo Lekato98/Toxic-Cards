@@ -1,6 +1,6 @@
 const countdownNumberEl = document.getElementById('countdown-number');
 const userId = ~~prompt('user id', '0');
-const client = io('localhost:3000/game', {auth: {userId}});
+const client = io('127.0.0.1:3000/game', {auth: {userId}});
 const players = Array.from(document.getElementsByClassName('player'));
 
 let countdown = 10;
@@ -25,6 +25,10 @@ function joinQueue() {
     client.emit('join_queue');
 }
 
+function leaveGame() {
+    client.emit('leave_game');
+}
+
 function startGame() {
     client.emit('action', {action: 0});
 }
@@ -42,9 +46,7 @@ function pingPong() {
     startTime = new Date();
     client.emit('ping');
 }
-players.forEach((_player, _index) => {
-    console.log(_player.getElementsByTagName('span'));
-})
+
 client.on('success', console.log);
 client.on('error', (message) => alert(message));
 client.on('status', (payload) => alert(JSON.stringify(payload, null, 2)));
@@ -52,8 +54,6 @@ client.on('update_state', (state) => {
     console.log(state);
     players.forEach((_player, _index) => {
         const [span] = _player.getElementsByTagName('span');
-        console.log(state.players[_index]?.id);
-        console.log(state.players[_index]?.userId);
         _player.id = state.players[_index]?.id ?? -1;
         span.innerText = state.players[_index]?.userId ?? 'Bot';
         const cards = Array.from(_player.getElementsByClassName('card'));

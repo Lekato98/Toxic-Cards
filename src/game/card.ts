@@ -17,10 +17,10 @@ export enum CardRank {
     EIGHT = 8,
     NINE = 9,
     TEN = 10,
-    JACK = 'J',
-    QUEEN = 'Q',
-    KING = 'K',
-    ACE = 'A',
+    JACK = 11,
+    QUEEN = 12,
+    KING = 13,
+    ACE = 1,
 }
 
 type CardWeight = number;
@@ -71,7 +71,7 @@ export abstract class CardUtil {
 
         // get key of rank
         // @todo find better solution
-        const rankName: CardWeight = CardRank[rank];
+        const rankName: string = CardRank[rank];
         return CardUtil.CARD_WEIGHT[rankName];
     }
 
