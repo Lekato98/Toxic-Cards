@@ -1,11 +1,16 @@
 import { Card } from './card';
 import { CardHand } from './card-hand';
+import { Utils } from './utils';
+import { Event, GameSocketService } from '../socket/socket';
 
 export class Player {
     public readonly id: number;
     public handCards: CardHand;
     public score: number;
     public isBot: boolean;
+    // if player reach -100 score or left the game
+    // or if the game start and there is missing players
+    public isOut: boolean;
     private userId: number;
 
     constructor(id: number, userId?: number) {
@@ -13,7 +18,7 @@ export class Player {
         this.score = 0;
         this.handCards = new CardHand();
 
-        if (userId) {
+        if (!Utils.isNullOrUndefined(userId)) {
             this.markAsUser(userId);
         } else {
             this.markAsBot();
@@ -36,8 +41,12 @@ export class Player {
             this.handCards.getCardByOrder(secondCard),
         ];
 
-        // @TODO add event
-        // this.user?.emit('', cards);
+        if (!this.isBot) {
+            GameSocketService.emitUser(Event.STATUS, this.userId, {
+                firstCard: cards[0].toShow(),
+                secondCard: cards[1].toShow(),
+            });
+        }
     }
 
     public markAsBot(): void {
@@ -50,7 +59,24 @@ export class Player {
         this.isBot = false;
     }
 
+    public getUserId(): number {
+        return this.userId;
+    }
+
+    public markAsOut(): void {
+        this.isOut = true;
+    }
+
     public clearHand(): void {
         this.handCards.clear();
+    }
+
+    public getState(): any {
+        return {
+            id: this.id,
+            userId: this.userId,
+            handCards: this.handCards.getState(),
+            isBot: this.isBot,
+        };
     }
 }

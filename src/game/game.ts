@@ -16,6 +16,7 @@ import { BeginOfTurn } from './state/begin-of-turn';
 import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
 import { Utils } from './utils';
+import { Event, GameSocketService } from '../socket/socket';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -135,7 +136,7 @@ export class Game {
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
-            this.joinAsPlayerAction(creatorId, 0);
+            this.joinAsPlayerAction(creatorId);
         }
     }
 
@@ -175,7 +176,7 @@ export class Game {
             this.action(Action.BEGIN_OF_TURN);
         } else if (this.state instanceof EndOfTurn) {
             this.action(Action.END_OF_TURN);
-        } else if (this.state instanceof  EndOfGame) {
+        } else if (this.state instanceof EndOfGame) {
             this.action(Action.END_OF_GAME);
         }
     }
@@ -204,16 +205,17 @@ export class Game {
                 return this.joinAsPlayerAction(payload.userId, payload.playerId);
 
             case Action.JOIN_AS_SPECTATOR:
-                return  this.joinAsSpectatorAction(payload.userId);
+                return this.joinAsSpectatorAction(payload.userId);
 
             case Action.LEAVE:
-                return  this.leaveAction(payload.userId);
+                return this.leaveAction(payload.userId);
 
             case Action.PASS:
                 return this.passAction();
 
             default:
                 this.state.action(this, action, payload);
+                GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
         }
     }
 
@@ -271,7 +273,10 @@ export class Game {
     }
 
     public pickCardFromPileAction() {
-        this.pickedCard = this.pileOfCards.pick();
+        const pickedCard = this.pileOfCards.pick();
+        this.pickedCard = pickedCard;
+        const userId = this.players[this.turn].getUserId();
+        GameSocketService.emitUser(Event.STATUS, userId, {pickedCard: pickedCard.toShow()});
         this.setState(PilePicked.getInstance());
     }
 
@@ -290,6 +295,10 @@ export class Game {
         }
 
         const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Invalid picked card');
+        }
+
         const card = player.getCard(cardId);
         const topBurnedCard = this.burnedCards.top;
         if (card.equalsRank(topBurnedCard)) {
@@ -325,6 +334,10 @@ export class Game {
 
     public exchangePickWithHandAction(userId: number, cardId: string) {
         const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Pick a valid card');
+        }
+
         const card = player.getCard(cardId);
         const pickedCard = this.pickedCard;
         CardUtil.swap(card, pickedCard);
@@ -332,11 +345,13 @@ export class Game {
     }
 
     public exchangeHandWithOther(userId: number, cardId: string, otherPlayerId: number, otherCardId: string) {
-        if (this.isValidPlayer(otherPlayerId)) {
+        if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
             const player = this.userPlayer.get(userId);
             const otherPlayer = this.players[otherPlayerId];
             if (player === otherPlayer) {
                 throw new InvalidAction('Changing card with your self is not allowed');
+            } else if (!this.isValidPlayerCard(player.id, cardId)) {
+                throw new InvalidAction('Pick a valid card');
             }
 
             const playerCard = player.getCard(cardId);
@@ -349,13 +364,18 @@ export class Game {
     }
 
     public showOneHandCardAction(userId: number, cardId: string) {
-        const card = this.userPlayer.get(userId).getCard(cardId);
+        const player = this.userPlayer.get(userId);
+        if (!this.isValidPlayerCard(player.id, cardId)) {
+            throw new InvalidAction('Pick a valid card');
+        }
+
+        const card = player.getCard(cardId);
         // emit with card suit, rank
         this.setState(Burn.getInstance());
     }
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
-        if (this.isValidPlayer(otherPlayerId)) {
+        if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
             const card = this.players[otherPlayerId].getCard(otherCardId);
             // emit with card suit, rank
             this.setState(Burn.getInstance());
@@ -402,12 +422,16 @@ export class Game {
         // @todo reset
     }
 
-    public joinAsPlayerAction(userId: number, playerId: number): void {
+    public joinAsPlayerAction(userId: number, playerId?: number): void {
         if (this.isJoinedAsPlayer(userId)) {
             throw new InvalidAction('Player already joined');
         }
 
-        if (!this.isValidPlayer(playerId)) { // @todo check if the player is already taken
+        if (Utils.isNullOrUndefined(playerId)) {
+            playerId = this.players.find((_player) => _player.isBot)?.id;
+        }
+
+        if (!this.isValidPositionToJoin(playerId)) {
             throw new InvalidAction('Invalid position or already taken');
         }
 
@@ -430,7 +454,7 @@ export class Game {
 
     public joinAsSpectatorAction(userId: number): void {
         if (this.isJoined(userId)) {
-            throw new InvalidAction(`User is already joined as ${this.jointType.get(userId)}`);
+            throw new InvalidAction(`User is already joined as ${ this.jointType.get(userId) }`);
         }
 
         this.userSpectator.set(userId, true);
@@ -440,7 +464,7 @@ export class Game {
     public leaveAction(userId: number): void {
         const jointType = this.jointType.get(userId);
 
-        switch(jointType) {
+        switch (jointType) {
             case JoinType.PLAYER:
                 this.userPlayer.delete(userId);
                 break;
@@ -467,6 +491,21 @@ export class Game {
         return this.userPlayer.get(userId);
     }
 
+    public getState(): any {
+        return {
+            id: this.id,
+            leader: this.leader,
+            players: this.players.map((_player) => _player.getState()),
+            numberOfPlayers: this.numberOfPlayers,
+            numberOfSpectators: this.numberOfSpectators,
+            state: this.state.constructor.name,
+            turn: this.turn,
+            topBurnedCards: {...this.burnedCards.top, id: undefined},
+            passedBy: this.passedBy,
+            isGameStarted: this.isGameStarted,
+        };
+    }
+
     public isJoinedAsPlayer(userId: number): boolean {
         return this.userPlayer.has(userId);
     }
@@ -488,7 +527,15 @@ export class Game {
     }
 
     public isValidPlayer(playerId: number): boolean {
-        return 0 <= playerId && playerId < this.players.length && this.players[playerId].isBot;
+        return 0 <= playerId && playerId < this.players.length;
+    }
+
+    public isValidPositionToJoin(playerId: number): boolean {
+        return this.isValidPlayer(playerId) && this.players[playerId].isBot;
+    }
+
+    public isValidPlayerCard(playerId: number, cardId: string): boolean {
+        return this.isValidPlayer(playerId) && !Utils.isNullOrUndefined(this.players[playerId].handCards.getCard(cardId));
     }
 
     public isFull(): boolean {

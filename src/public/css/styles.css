@@ -1,0 +1,117 @@
+body{
+    text-align: center;
+    background-color: purple;
+}
+
+.container{
+    position: relative;
+}
+.player{
+    display: inline-block;
+    width: 200px;
+    height: 200px;
+    background-color: aliceblue;
+}
+
+.p1{
+    position: absolute;
+    right: 100px;
+    top:250px
+}
+
+.p2{
+    position: absolute;
+    left: 100px;
+    top:250px
+}
+
+.p3{
+    position: absolute;
+    right: 700px;
+    top: 25px;
+}
+
+.p4{
+    position: absolute;
+    right: 700px;
+    top: 500px;
+}
+
+span{
+    display: block;
+}
+
+.card{
+    display: inline-block;
+    width:65px;
+    height: 80px;
+    border-radius: 5px;
+
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 333;
+    cursor: pointer;
+}
+
+.deck{
+    position: absolute;
+    top:325px;
+    left:620px;
+    width: 200px;
+    height: 100px;
+    background-color: white;
+    padding-top: 10px;
+}
+
+body {
+  height: 100%;
+  background-color: #333;
+}
+
+#countdown {
+  position: relative;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+}
+
+#countdown-number {
+  color: white;
+  display: inline-block;
+  line-height: 40px;
+}
+
+svg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  transform: rotateY(-180deg) rotateZ(-90deg);
+}
+
+svg circle {
+  stroke-dasharray: 113px;
+  stroke-dashoffset: 0px;
+  stroke-linecap: round;
+  stroke-width: 2px;
+  stroke: white;
+  fill: none;
+  animation: countdown 10s linear infinite forwards;
+}
+
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0px;
+  }
+  to {
+    stroke-dashoffset: 113px;
+  }
+}
+
+.lalo{
+    position: fixed;
+    top: 0;
+    right:5px;
+}

@@ -8,22 +8,6 @@ export enum CardSuit {
 }
 
 export enum CardRank {
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
-    NINE,
-    TEN,
-    JACK,
-    QUEEN,
-    KING,
-    ACE,
-}
-
-enum CardWeight {
     TWO = 2,
     THREE = 3,
     FOUR = 4,
@@ -35,10 +19,11 @@ enum CardWeight {
     TEN = 10,
     JACK = 11,
     QUEEN = 12,
-    RED_KING = 0,
-    BLACK_KING = 13,
+    KING = 13,
     ACE = 1,
 }
+
+type CardWeight = number;
 
 export enum CardColor {
     RED = 'red',
@@ -53,6 +38,22 @@ export enum CardAbility {
 }
 
 export abstract class CardUtil {
+    public static readonly CARD_WEIGHT = {
+        TWO: 2,
+        THREE: 3,
+        FOUR: 4,
+        FIVE: 5,
+        SIX: 6,
+        SEVEN: 7,
+        EIGHT: 8,
+        NINE: 9,
+        TEN: 10,
+        JACK: 11,
+        QUEEN: 12,
+        RED_KING: 0,
+        BLACK_KING: 13,
+        ACE: 1,
+    };
     public static readonly CARD_SUITS = [CardSuit.CLUBS, CardSuit.DIAMONDS, CardSuit.HEARTS, CardSuit.SPADES];
     public static readonly CARD_RANKS = [
         CardRank.TWO, CardRank.THREE, CardRank.FOUR,
@@ -65,12 +66,13 @@ export abstract class CardUtil {
 
     public static getWeightBySuitAndRank(suit: CardSuit, rank: CardRank): CardWeight {
         if (rank === CardRank.KING) {
-            return CardUtil.isRed(suit) ? CardWeight.RED_KING : CardWeight.BLACK_KING;
+            return CardUtil.isRed(suit) ? CardUtil.CARD_WEIGHT.RED_KING : CardUtil.CARD_WEIGHT.BLACK_KING;
         }
 
         // get key of rank
-        const rankName = CardRank[rank];
-        return CardWeight[rankName];
+        // @todo find better solution
+        const rankName: string = CardRank[rank];
+        return CardUtil.CARD_WEIGHT[rankName];
     }
 
     public static getAbilityByRank(rank: CardRank): CardAbility {
@@ -196,5 +198,19 @@ export class Card {
         this.ability = card.ability;
         this.used = card.used;
         this.weight = card.weight;
+    }
+
+    public getState(): any {
+        return {
+            id: this.id,
+        };
+    }
+
+    public toShow(): any {
+        return {
+            suit: this.suit,
+            rank: this.rank,
+            weight: this.weight,
+        };
     }
 }

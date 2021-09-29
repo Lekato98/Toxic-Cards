@@ -5,15 +5,18 @@ import { Action, Game } from '../game/game';
 import { BeginOfGame } from '../game/state/begin-of-game';
 import * as chalk from 'chalk';
 
-enum Event {
+export enum Event {
     CONNECTION = 'connection',
     PING = 'ping',
     PONG = 'pong',
+    STATUS = 'status',
     SUCCESS = 'success',
     CREATE_GAME = 'create_game',
     JOIN_GAME = 'join_game',
+    JOIN_QUEUE = 'join_queue',
     ACTION = 'action',
     LEAVE_GAME = 'leave_game',
+    UPDATE_STATE = 'update_state',
     RECONNECT = 'reconnect',
     ERROR = 'error',
     DISCONNECT = 'disconnect',
@@ -53,7 +56,7 @@ export abstract class GameSocketService {
         const query = client.handshake.query;
         console.log(`Authorizing token: `, token);
         console.log(`Authorizing query: `, query);
-        const userId = ~~(token.userId || query.userId);
+        const userId = ~~(token.userId ?? query.userId);
         // @todo use jwt later
         if (Utils.isNullOrUndefined(userId)) {
             return next(new Error('Unauthorized'));
@@ -66,17 +69,19 @@ export abstract class GameSocketService {
 
     public static onConnectionGame(client: Socket): void {
         console.log(`Client#${ client.id } joined Game Namespace!`);
+        GameSocketService.reconnect(client);
         GameSocketService.preEvents(client);
         GameSocketService.addNewUserClient(client);
         GameSocketService.pingPongEvent(client);
         GameSocketService.createGameEvent(client);
         GameSocketService.joinGameEvent(client);
+        GameSocketService.joinQueueEvent(client);
         GameSocketService.leaveGameEvent(client);
         GameSocketService.actionEvent(client);
     }
 
     public static onDisconnect(client: Socket): void {
-        client.on(Event.DISCONNECT, (reason) => console.log(`Client#${ client.id } left Game Namespace, due to ${ reason }`));
+        client.on(Event.DISCONNECT, (reason) => console.log(`Client#${ client.id },User#${client.data.userId} left Game Namespace, due to ${ reason }`));
     }
 
     public static pingPongEvent(client: Socket): void {
@@ -86,9 +91,14 @@ export abstract class GameSocketService {
     public static preEvents(client: Socket): void {
         client.prependAny((...args) => {
             const [event, ...payload] = args;
+            const {userId} = client.data;
+            if (event === Event.PING) {
+                return;
+            }
             console.log(
                 chalk.blue('~GAME_EVENT'),
-                'namespace:', 'NamespacePrefix.GAME',
+                'namespace:', NamespacePrefix.GAME,
+                ', userId:', userId,
                 ', event:', chalk.green(event.toUpperCase()),
                 ', payload:', payload,
             );
@@ -130,7 +140,29 @@ export abstract class GameSocketService {
                 const game = GameSocketService.games.get(gameId);
                 game.action(Action.JOIN_AS_PLAYER, {userId, playerId});
                 GameSocketService.registerClient(client, game);
-                GameSocketService.namespace.to(String(game.id)).emit(Event.SUCCESS, {message: `${userId} just joined the game!`});
+            } catch (e) {
+                GameSocketService.handleError(client, e);
+            }
+        });
+    }
+
+    public static joinQueueEvent(client: Socket): void {
+        client.on(Event.JOIN_QUEUE, () => {
+            try {
+                const {userId} = client.data;
+                let game: Game;
+                GameSocketService.games.forEach((_game) => {
+                    if (!_game.isFull()) {
+                        return game = _game;
+                    }
+                });
+
+                if (game) {
+                    game.action(Action.JOIN_AS_PLAYER, {userId});
+                    return GameSocketService.registerClient(client, game);
+                }
+
+                GameSocketService.handleError(client, new Error('All games are full create new game...'));
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -142,7 +174,7 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (!GameSocketService.isInGame(userId)) {
-                    return GameSocketService.handleError(client, new Error('User is not in game'));
+                    return GameSocketService.handleError(client, new Error(`User#${userId} is not in game`));
                 }
 
                 const {action, ...actionPayload} = payload;
@@ -159,6 +191,10 @@ export abstract class GameSocketService {
         client.on(Event.LEAVE_GAME, () => {
             try {
                 const {userId} = client.data;
+                if (!this.isInGame(userId)) {
+                    return GameSocketService.handleError(client, new Error('User is not in game'));
+                }
+
                 const game = this.userGames.get(userId);
                 const gameId = String(game.id);
                 game.action(Action.LEAVE, {userId});
@@ -185,12 +221,42 @@ export abstract class GameSocketService {
     private static registerClient(client: Socket, game: Game): void {
         const {userId} = client.data;
         const gameId = String(game.id);
-        GameSocketService.userGames.set(userId, game);
-        client.join(gameId);
+        client.join(gameId); // join client to room of game
+        GameSocketService.userGames.set(userId, game); // assign userId to map game
+        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just joined the game!`}); // broadcast message to room members
+    }
+
+    public static reconnect(client: Socket): void {
+        const {userId} = client.data;
+        if (GameSocketService.userClients.get(userId)) {
+            client.emit(Event.STATUS, {message: 'reconnected successfully'});
+        }
+
+        if (GameSocketService.isInGame(userId)) {
+            console.log('reconnecting to game');
+            const game = GameSocketService.userGames.get(userId);
+            client.emit(Event.UPDATE_STATE, game.getState());
+            // GameSocketService.emitRoom(Event.UPDATE_STATE, game.id, game.getState());
+        }
+
+        GameSocketService.userClients.set(userId, client);
     }
 
     private static handleError(client: Socket, err: Error): void {
         console.error(err);
         client.emit(Event.ERROR, err.message);
+    }
+
+    public static emitRoom(event: Event, roomId: string | number, payload: any): void {
+        console.log(`Event ${event}, Room ${roomId}, Payload`, payload);
+        GameSocketService.namespace.to(String(roomId)).emit(event, payload);
+    }
+
+    public static emitUser(event: Event, userId: number, payload: any): void {
+        if (GameSocketService.userClients.has(userId)) {
+            console.log(`Event ${event}, User ${userId}, Payload`, payload);
+            const client = GameSocketService.userClients.get(userId);
+            client.emit(event, payload);
+        }
     }
 }
