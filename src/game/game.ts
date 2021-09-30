@@ -500,7 +500,7 @@ export class Game {
             numberOfSpectators: this.numberOfSpectators,
             state: this.state.constructor.name,
             turn: this.turn,
-            topBurnedCards: {...this.burnedCards.top, id: undefined},
+            topBurnedCards: this.burnedCards.top?.toShow() ?? {},
             passedBy: this.passedBy,
             isGameStarted: this.isGameStarted,
         };

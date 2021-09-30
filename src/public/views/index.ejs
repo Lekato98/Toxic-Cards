@@ -21,6 +21,7 @@
     <button onclick="startGame()">Start Game</button>
     <button onclick="doAction()">Action</button>
     <div id="ping" style="color:green;position:fixed;top:0;left:0;margin: 5px">0ms</div>
+    <div id="state" style="color: white">Game State</div>
     <div class="lalo">
         <div id="countdown">
             <div id="countdown-number"></div>
@@ -64,8 +65,8 @@
         </div>
 
         <div class="deck">
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div id="burned" class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div id="pile" class="card" style="background-image: url('images/poker-cards.png');"></div>
         </div>
     </div>
 

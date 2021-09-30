@@ -31,7 +31,7 @@ export abstract class GameSocketService {
     private static namespace: Namespace;
     private static userClients: Map<number, Socket>;
     private static games: Map<number, Game>;
-    private static userGames: Map<number, Game>;
+    private static userGames: Map<number, Game>; // @todo maybe set gameId instead of ref obj
 
     public static init(server: Server): void {
         GameSocketService.namespace = server.of(NamespacePrefix.GAME);
@@ -162,7 +162,10 @@ export abstract class GameSocketService {
                     return GameSocketService.registerClient(client, game);
                 }
 
-                GameSocketService.handleError(client, new Error('All games are full create new game...'));
+                const message = GameSocketService.games.size ?
+                    'All games are full create new game...' :
+                    'Be the first one to create a new game!';
+                GameSocketService.handleError(client, new Error(message));
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -199,6 +202,7 @@ export abstract class GameSocketService {
                 const gameId = String(game.id);
                 game.action(Action.LEAVE, {userId});
                 GameSocketService.userGames.delete(userId);
+                GameSocketService.deleteEmptyGame(game);
                 client.leave(gameId);
             } catch (e) {
                 GameSocketService.handleError(client, e);
@@ -228,23 +232,25 @@ export abstract class GameSocketService {
 
     public static reconnect(client: Socket): void {
         const {userId} = client.data;
-        if (GameSocketService.userClients.get(userId)) {
-            client.emit(Event.STATUS, {message: 'reconnected successfully'});
-        }
-
+        GameSocketService.userClients.set(userId, client);
+        client.emit(Event.STATUS, {message: 'reconnected successfully'});
         if (GameSocketService.isInGame(userId)) {
             console.log('reconnecting to game');
             const game = GameSocketService.userGames.get(userId);
+            GameSocketService.registerClient(client, game);
             client.emit(Event.UPDATE_STATE, game.getState());
-            // GameSocketService.emitRoom(Event.UPDATE_STATE, game.id, game.getState());
         }
-
-        GameSocketService.userClients.set(userId, client);
     }
 
     private static handleError(client: Socket, err: Error): void {
         console.error(err);
         client.emit(Event.ERROR, err.message);
+    }
+
+    private static deleteEmptyGame(game: Game): void {
+        if (!game.numberOfPlayers) {
+            GameSocketService.games.delete(game.id);
+        }
     }
 
     public static emitRoom(event: Event, roomId: string | number, payload: any): void {

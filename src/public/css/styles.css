@@ -9,8 +9,8 @@ body{
 .player{
     display: inline-block;
     width: 200px;
-    height: 200px;
-    background-color: aliceblue;
+    height: 225px;
+    background-color: lightgray;
 }
 
 .p1{
@@ -44,7 +44,7 @@ span{
 .card{
     display: inline-block;
     width:65px;
-    height: 80px;
+    height: 95px;
     border-radius: 5px;
 
     background-position: center;
@@ -60,7 +60,7 @@ span{
     left:620px;
     width: 200px;
     height: 100px;
-    background-color: white;
+    background-color: lightgray;
     padding-top: 10px;
 }
 

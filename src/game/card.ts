@@ -208,6 +208,7 @@ export class Card {
 
     public toShow(): any {
         return {
+            id: this.id,
             suit: this.suit,
             rank: this.rank,
             weight: this.weight,
