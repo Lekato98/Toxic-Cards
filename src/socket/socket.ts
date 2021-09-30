@@ -232,10 +232,14 @@ export abstract class GameSocketService {
 
     public static reconnect(client: Socket): void {
         const {userId} = client.data;
+        if (!GameSocketService.userClients.has(userId)) {
+            return;
+        }
+
         GameSocketService.userClients.set(userId, client);
         client.emit(Event.STATUS, {message: 'reconnected successfully'});
         if (GameSocketService.isInGame(userId)) {
-            console.log('reconnecting to game');
+            console.log(`User#${userId} reconnecting to game`);
             const game = GameSocketService.userGames.get(userId);
             GameSocketService.registerClient(client, game);
             client.emit(Event.UPDATE_STATE, game.getState());
@@ -248,7 +252,7 @@ export abstract class GameSocketService {
     }
 
     private static deleteEmptyGame(game: Game): void {
-        if (!game.numberOfPlayers) {
+        if (!game.numberOfUserPlayers) {
             GameSocketService.games.delete(game.id);
         }
     }

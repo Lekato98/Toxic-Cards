@@ -31,7 +31,7 @@ describe('Test Game', () => {
         const initialState = BeginOfGame.getInstance();
         const tGame = new Game(maxNumberOfPlayers, initialState, usersId[0]);
         expect(tGame.leader).toBe(usersId[0]);
-        expect(tGame.numberOfPlayers).toBe(1);
+        expect(tGame.numberOfUserPlayers).toBe(1);
     });
 
     test('Create Game with invalid number of players', () => {
@@ -49,7 +49,7 @@ describe('Test Game', () => {
         expect(game.burnedCards.getSize()).toBe(0);
         expect(game.isGameStarted).toBe(false);
         expect(game.isFull()).toBe(false);
-        expect(game.numberOfPlayers).toBe(0);
+        expect(game.numberOfUserPlayers).toBe(0);
         expect(game.leader).toBeNull();
         expect(game.passedBy).toBeNull();
         expect(game.players.length).toBe(maxNumberOfPlayers);
@@ -80,7 +80,7 @@ describe('Test Game', () => {
         game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 0});
         expect(game.leader).toBe(userId);
         expect(game.isGameStarted).toBe(false);
-        expect(game.numberOfPlayers).toBe(1);
+        expect(game.numberOfUserPlayers).toBe(1);
         expect(game.isLeaderUser(userId)).toBe(true);
         expect(game.isJoinedAsPlayer(userId)).toBe(true);
         expect(game.isFull()).toBe(false);
@@ -97,7 +97,7 @@ describe('Test Game', () => {
         game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 1});
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
-        expect(game.numberOfPlayers).toBe(2);
+        expect(game.numberOfUserPlayers).toBe(2);
         expect(game.isLeaderUser(userId)).toBeFalsy();
         expect(game.isJoinedAsPlayer(userId)).toBeTruthy();
         expect(game.isFull()).toBeFalsy();
@@ -114,7 +114,7 @@ describe('Test Game', () => {
         game.action(Action.JOIN_AS_PLAYER, {userId, playerId: 2});
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
-        expect(game.numberOfPlayers).toBe(3);
+        expect(game.numberOfUserPlayers).toBe(3);
         expect(game.isLeaderUser(userId)).toBeFalsy();
         expect(game.isJoinedAsPlayer(userId)).toBeTruthy();
         expect(game.isFull()).toBeTruthy();
@@ -373,16 +373,36 @@ describe('Test Game', () => {
         game.action(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId: cardId});
 
         expect(anotherMock).toThrow(InvalidAction);
-        expect(game.state).toBeInstanceOf(EndOfGame);
+        expect(game.state).toBeInstanceOf(PickBurn);
     });
 
     test('User 3 LEAVE', () => {
         const userId = usersId[2];
-        const oldNumberOfPlayers = game.numberOfPlayers;
+        const oldNumberOfPlayers = game.numberOfUserPlayers;
         const newNumberOfPlayers = oldNumberOfPlayers - 1;
         game.action(Action.LEAVE, {userId});
-        expect(game.numberOfPlayers).toBe(newNumberOfPlayers);
+        expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
         expect(game.isFull()).toBeFalsy();
+    });
+
+    test('User 2 LEAVE', () => {
+        const userId = usersId[1];
+        const oldNumberOfPlayers = game.numberOfUserPlayers;
+        const newNumberOfPlayers = oldNumberOfPlayers - 1;
+        game.action(Action.LEAVE, {userId});
+        expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
+        expect(game.isFull()).toBeFalsy();
+        expect(game.isEndOfGame()).toBeFalsy();
+    });
+
+    test('User 1 LEAVE', () => {
+        const userId = usersId[0];
+        const oldNumberOfPlayers = game.numberOfUserPlayers;
+        const newNumberOfPlayers = oldNumberOfPlayers - 1;
+        game.action(Action.LEAVE, {userId});
+        expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
+        expect(game.isFull()).toBeFalsy();
+        expect(game.isEndOfGame()).toBeTruthy();
     });
 
     test('Deck create invalid deck with negative size', () => {

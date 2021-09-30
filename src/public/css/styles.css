@@ -1,6 +1,5 @@
 body{
     text-align: center;
-    background-color: purple;
 }
 
 .container{
@@ -10,7 +9,7 @@ body{
     display: inline-block;
     width: 200px;
     height: 225px;
-    background-color: lightgray;
+    /*background-color: lightgray;*/
 }
 
 .p1{
@@ -39,6 +38,7 @@ body{
 
 span{
     display: block;
+    color: white;
 }
 
 .card{
@@ -62,6 +62,14 @@ span{
     height: 100px;
     background-color: lightgray;
     padding-top: 10px;
+}
+
+.picked-deck {
+    position: absolute;
+    top: 575px;
+    right: 250px;
+    width: 200px;
+    height: 100px;
 }
 
 body {

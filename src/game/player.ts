@@ -6,7 +6,8 @@ import { Event, GameSocketService } from '../socket/socket';
 export class Player {
     public readonly id: number;
     public handCards: CardHand;
-    public score: number;
+    private currentScore: number;
+    private totalScore: number;
     public isBot: boolean;
     // if player reach -100 score or left the game
     // or if the game start and there is missing players
@@ -15,8 +16,10 @@ export class Player {
 
     constructor(id: number, userId?: number) {
         this.id = id;
-        this.score = 0;
         this.handCards = new CardHand();
+        this.isOut = false;
+        this.resetCurrentScore();
+        this.resetTotalScore();
 
         if (!Utils.isNullOrUndefined(userId)) {
             this.markAsUser(userId);
@@ -71,12 +74,34 @@ export class Player {
         this.handCards.clear();
     }
 
+    public resetCurrentScore(): void {
+        this.currentScore = 0;
+    }
+
+    public resetTotalScore(): void {
+        this.totalScore = 0;
+    }
+
+    public getCurrentScore(): number {
+        return this.handCards.getWeightSum();
+    }
+
+    public getTotalScore(): number {
+        return this.totalScore;
+    }
+
+    public updateTotalScore(isPositive: boolean = true): void {
+        this.totalScore += isPositive ? this.currentScore : -this.currentScore;
+        this.currentScore = 0;
+    }
+
     public getState(): any {
         return {
             id: this.id,
             userId: this.userId,
             handCards: this.handCards.getState(),
             isBot: this.isBot,
+            score: this.totalScore,
         };
     }
 }
