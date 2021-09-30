@@ -22,5 +22,5 @@ void function bootstrap(app: Express): void {
     const server: http.Server = http.createServer(app);
     const io: Server = new Server(server, ioConfig);
     GameSocketService.init(io);
-    server.listen(3000, () => console.log('server listening to *:3000'));
+    server.listen(process.env.PORT, () => console.log(`server listening to *:${process.env.PORT}`));
 }(app);
