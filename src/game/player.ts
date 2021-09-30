@@ -90,17 +90,25 @@ export class Player {
         return this.totalScore;
     }
 
-    public updateTotalScore(isPositive: boolean = true): void {
-        this.totalScore += isPositive ? this.currentScore : -this.currentScore;
+    public updateTotalScore(isPositive: boolean = true, nTimes: number = 1): void {
+        this.totalScore += nTimes * (isPositive ? this.getCurrentScore() : -this.getCurrentScore());
         this.currentScore = 0;
     }
 
-    public getState(): any {
+    public reset(): void {
+        this.resetTotalScore();
+        this.resetCurrentScore();
+        this.clearHand();
+        this.isOut = false;
+    }
+
+    public getState() {
         return {
             id: this.id,
             userId: this.userId,
             handCards: this.handCards.getState(),
             isBot: this.isBot,
+            isOut: this.isOut,
             score: this.totalScore,
         };
     }

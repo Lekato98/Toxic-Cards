@@ -1,6 +1,6 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const countdownNumberEl = document.getElementById('countdown-number');
-const userId = Math.floor(Math.random() * 100); // ~~prompt('user id', '0')
+const userId = Math.floor(Math.random() * 1000); // ~~prompt('user id', '0')
 const client = io('127.0.0.1:3000/game', {auth: {userId}});
 const players = Array.from(document.getElementsByClassName('player'));
 const pileCards = document.getElementById('pile');
@@ -11,6 +11,8 @@ const pickedCardHolder = pickedDeck.getElementsByClassName('card')[0];
 let isMy = false;
 let countdown = 10;
 let startTime = new Date();
+let myPick = null;
+let otherPick = null;
 
 const Action = Object.freeze({
     // CREATE_GAME,
@@ -54,7 +56,11 @@ function leaveGame() {
 }
 
 function startGame() {
-    client.emit('action', {action: 0});
+    client.emit('action', {action: Action.START_GAME});
+}
+
+function passAction() {
+    client.emit('action', {action: Action.PASS});
 }
 
 function pickPile() {
@@ -97,8 +103,40 @@ function showOneOtherHandCard(otherPlayerId, otherCardId) {
     client.emit('action', {action: Action.SHOW_ONE_OTHER_HAND_CARD, otherCardId, otherPlayerId});
 }
 
+function swapAction() {
+    if (myPick && otherPick) {
+        document.getElementById(myPick).classList.remove('selected');
+        document.getElementById(otherPick.otherCardId).classList.remove('selected');
+        client.emit('action', {action: Action.EXCHANGE_HAND_WITH_OTHER, cardId: myPick, ...otherPick});
+    }
+}
+
 function exchangeOneHandCardWithOther(event) {
     // @todo
+    const [myPlayer] = [...players];
+    const otherPlayers = [...players];
+    otherPlayers.splice(0, 1);
+
+    const myCards = Array.from(myPlayer.getElementsByClassName('card'));
+    myCards.forEach((card) => {
+        card.onclick = () => {
+            myCards.forEach((_card) => _card.classList.remove('selected'));
+            card.classList.add('selected');
+            myPick = card.id;
+        }
+    });
+
+    const otherCards = otherPlayers.map((player) => Array.from(player.getElementsByClassName('card'))).flat();
+    otherCards.forEach((card) => {
+        card.onclick = () => {
+            otherCards.forEach((_card) => _card.classList.remove('selected'));
+            card.classList.add('selected');
+            otherPick = {
+                otherPlayerId: +card.parentElement.id,
+                otherCardId: card.id,
+            };
+        };
+    });
 }
 
 function pingPong() {
@@ -119,11 +157,9 @@ function getCardImageURL(card) {
 
 function setOtherAction() {
     players.forEach((player) => {
-       const [span] = player.getElementsByTagName('span');
        const cards = Array.from(player.getElementsByClassName('card'));
        cards.forEach((card) => {
-           card.onclick = () => showOneOtherHandCard(+span.id, card.id);
-           console.log(card.id);
+           card.onclick = () => showOneOtherHandCard(+player.id, card.id);
        });
     });
 }
@@ -166,7 +202,7 @@ client.on('update_state', (state) => {
     let currentPosition = myPosition === -1 ? 0 : myPosition;
     let index = 0;
 
-    if (myPlayer.userId === state.players[state.turn].userId) {
+    if (myPlayer.userId === state.players[state.turn]?.userId) {
         isMy = true;
     } else {
         pickedDeck.style.display = 'none';
@@ -175,6 +211,7 @@ client.on('update_state', (state) => {
     do {
         const _player = players[index];
         const [span] = _player.getElementsByTagName('span');
+        const [score] = _player.getElementsByClassName('score');
         const id = state.players[currentPosition].id;
         if (id !== -1) {
             _player.id = id;
@@ -183,13 +220,27 @@ client.on('update_state', (state) => {
         const isMyTurn = id === state.turn;
         _player.style.backgroundColor = isMyTurn ? 'lightslategray' : '';
 
-        span.innerText = state.players[currentPosition].userId ?? getRandomName();
-        span.id = String(currentPosition);
+        const curPlayer = state.players[currentPosition];
+        span.innerText = `User#${curPlayer.userId ?? -1}:${curPlayer.username ?? getRandomName()}`;
+        score.innerText = `Score: ${curPlayer.score}`;
         const cards = Array.from(_player.getElementsByClassName('card'));
         cards.forEach((__card, __index) => {
-            __card.id = state.players[currentPosition]?.handCards?.cards[__index]?.id;
-            // __card.style.backgroundImage = `url('images/cards/S/1.png')`;
+            const cardId = state.players[currentPosition]?.handCards?.cards[__index]?.id;
+            if (cardId) {
+                __card.id = cardId;
+                __card.style.display = 'inline-block';
+            } else {
+                __card.style.display = 'none';
+            }
         });
+
+        if (id === state.passedBy) {
+            _player.style.backgroundColor = 'lightseagreen';
+        }
+
+        if (curPlayer.isOut) {
+            _player.style.backgroundColor = 'darkred';
+        }
 
         currentPosition = (currentPosition + 1) % numberOfPlayers;
         ++index;
@@ -209,7 +260,7 @@ client.on('update_state', (state) => {
             break;
 
         case 'ExchangeHandWithOther':
-            cards.forEach((card) => card.onclick = exchangeOneHandCardWithOther);
+            exchangeOneHandCardWithOther();
             break;
 
         case 'PilePicked':

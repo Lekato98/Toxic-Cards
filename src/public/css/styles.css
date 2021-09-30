@@ -5,11 +5,11 @@ body{
 .container{
     position: relative;
 }
+
 .player{
     display: inline-block;
     width: 200px;
-    height: 225px;
-    /*background-color: lightgray;*/
+    height: 285px;
 }
 
 .p1{
@@ -39,6 +39,7 @@ body{
 span{
     display: block;
     color: white;
+    padding: 10px;
 }
 
 .card{
@@ -46,6 +47,7 @@ span{
     width:65px;
     height: 95px;
     border-radius: 5px;
+    margin: 3px;
 
     background-position: center;
     background-repeat: no-repeat;
@@ -62,6 +64,18 @@ span{
     height: 100px;
     background-color: lightgray;
     padding-top: 10px;
+}
+
+.selected {
+    border: 2px solid #df0000;
+    outline: none;
+    box-shadow: 0 0 10px #df0000;
+}
+
+.score {
+    color: white;
+    background-color: #555555;
+    margin: 10px;
 }
 
 .picked-deck {

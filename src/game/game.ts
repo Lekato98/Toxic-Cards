@@ -248,11 +248,12 @@ export class Game {
         this.deck.shuffle();
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
+        this.nextTurn();
         this.setState(BeginOfTurn.getInstance());
     }
 
     public beginOfTurnAction(): void {
-        if (this.passedBy === this.userPlayer.get(this.turn)) {
+        if (this.passedBy === this.players[this.turn]) {
             return this.setState(EndOfRound.getInstance());
         }
 
@@ -263,7 +264,9 @@ export class Game {
     public distributeCardsAction() {
         this.players.forEach((_player: Player) => {
             for (let i = 1; i <= this.DEFAULT_NUMBER_OF_CARDS_PER_HAND; ++i) {
-                _player.addCardToHand(this.deck.pop());
+                if (!_player.isOut) {
+                    _player.addCardToHand(this.deck.pop());
+                }
             }
         });
 
@@ -274,7 +277,7 @@ export class Game {
 
     // @todo maybe rename (remove action from name)
     public showTwoHandCardsAction() {
-        this.players.forEach((_player: Player) => _player.emitTwoCards());
+        this.players.forEach((_player: Player) => !_player.isOut && _player.emitTwoCards());
     }
 
     // @todo maybe rename (remove action from name)
@@ -404,7 +407,11 @@ export class Game {
     }
 
     public passAction() {
-        this.passedBy = this.userPlayer.get(this.turn);
+        if (!Utils.isNullOrUndefined(this.passedBy)) {
+            throw new InvalidAction('There is already player passed');
+        }
+
+        this.passedBy = this.players[this.turn];
     }
 
     public endOfTurnAction(): void {
@@ -423,7 +430,7 @@ export class Game {
         this.pileOfCards.clear();
         this.burnedCards.clear();
         this.deck.reset();
-        this.passedBy = null; // used i
+        this.passedBy = null;
 
         if (this.isEndOfGame()) {
             this.setState(EndOfGame.getInstance());
@@ -433,12 +440,25 @@ export class Game {
     }
 
     public endOfGameAction() {
+        this.resetGame();
         this.setState(BeginOfGame.getInstance());
     }
 
     // user/turn action, game action, leader action
     public restartAction() {
-        // @todo reset
+        this.resetGame();
+    }
+
+    public resetGame() {
+        this.burnedCards.clear();
+        this.pileOfCards.clear();
+        this.deck.reset();
+        this.isGameStarted = false;
+        this.pickedCard = null;
+        this.passedBy = null;
+        this.turn = null;
+        this.players.forEach((player) => player.reset());
+        this.setState(BeginOfGame.getInstance());
     }
 
     public joinAsPlayerAction(userId: number, playerId?: number): void {
@@ -534,7 +554,9 @@ export class Game {
                 if (isTurnWinner) {
                     player.updateTotalScore(); // default add positive score for the guy who beat the passed player
                 } else if(player === this.passedBy) {
-                    player.updateTotalScore(false); // the guy who passed and get beat by others will gain negative score
+                    // the guy who passed and get beat by others will gain negative score
+                    // when player pass and lose hi score will double two times in negative
+                    player.updateTotalScore(false, 2);
                 } else {
                     player.resetCurrentScore();
                 }
@@ -556,7 +578,7 @@ export class Game {
             state: this.state.constructor.name,
             turn: this.turn,
             topBurnedCards: this.burnedCards.top?.toShow() ?? {},
-            passedBy: this.passedBy,
+            passedBy: this.passedBy?.id,
             isGameStarted: this.isGameStarted,
         };
     }
@@ -588,7 +610,7 @@ export class Game {
     }
 
     public isValidPlayer(playerId: number): boolean {
-        return 0 <= playerId && playerId < this.players.length;
+        return 0 <= playerId && playerId < this.players.length && !this.players[playerId].isOut;
     }
 
     public isValidPositionToJoin(playerId: number): boolean {

@@ -19,6 +19,8 @@
     <button onclick="joinQueue()">Join queue</button>
     <button onclick="leaveGame()">Leave game</button>
     <button onclick="startGame()">Start Game</button>
+    <button onclick="passAction()">Pass</button>
+    <button onclick="swapAction()">Swap</button>
     <button onclick="doAction()">Action</button>
     <div id="ping" style="color:green;position:fixed;top:0;left:0;margin: 5px">0ms</div>
     <div id="state" style="color: white">Game State</div>
@@ -37,6 +39,11 @@
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="score">Score: 0</div>
         </div>
 
         <div class="player p1">
@@ -45,6 +52,11 @@
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="score">Score: 0</div>
         </div>
 
         <div class="player p3">
@@ -53,14 +65,24 @@
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="score">Score: 0</div>
         </div>
 
         <div class="player p2">
-            <span>2</span>
+            <span>User#2: username</span>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
             <div class="card" style="background-image: url('images/poker-cards.png');"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
+            <div class="score">Score: 0</div>
         </div>
 
         <div class="deck">

@@ -81,7 +81,14 @@ export abstract class GameSocketService {
     }
 
     public static onDisconnect(client: Socket): void {
-        client.on(Event.DISCONNECT, (reason) => console.log(`Client#${ client.id },User#${client.data.userId} left Game Namespace, due to ${ reason }`));
+        client.on(Event.DISCONNECT, (reason) => {
+            console.log(`Client#${ client.id },User#${ client.data.userId } left Game Namespace, due to ${ reason }`);
+            const {userId} = client.data;
+            if (GameSocketService.isInGame(userId)) {
+                const game = GameSocketService.userGames.get(userId);
+                GameSocketService.unregisterClient(client, game);
+            }
+        });
     }
 
     public static pingPongEvent(client: Socket): void {
@@ -109,7 +116,7 @@ export abstract class GameSocketService {
         client.on(Event.CREATE_GAME, (payload) => {
             try {
                 const {userId} = client.data;
-                if (this.isInGame(userId)) {
+                if (GameSocketService.isInGame(userId)) {
                     return GameSocketService.handleError(client, new Error('User is already in game'));
                 }
 
@@ -127,13 +134,13 @@ export abstract class GameSocketService {
         client.on(Event.JOIN_GAME, (payload) => {
             try {
                 const {userId} = client.data;
-                if (this.isInGame(userId)) {
+                if (GameSocketService.isInGame(userId)) {
                     return GameSocketService.handleError(client, new Error('User is already in game'));
                 }
 
                 const {gameId, playerId} = payload;
 
-                if (!this.isGameAvailable(gameId)) {
+                if (!GameSocketService.isGameAvailable(gameId)) {
                     return GameSocketService.handleError(client, new Error('Game not found.'));
                 }
 
@@ -194,16 +201,12 @@ export abstract class GameSocketService {
         client.on(Event.LEAVE_GAME, () => {
             try {
                 const {userId} = client.data;
-                if (!this.isInGame(userId)) {
+                if (!GameSocketService.isInGame(userId)) {
                     return GameSocketService.handleError(client, new Error('User is not in game'));
                 }
 
-                const game = this.userGames.get(userId);
-                const gameId = String(game.id);
-                game.action(Action.LEAVE, {userId});
-                GameSocketService.userGames.delete(userId);
-                GameSocketService.deleteEmptyGame(game);
-                client.leave(gameId);
+                const game = GameSocketService.userGames.get(userId);
+                GameSocketService.unregisterClient(client, game);
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -227,7 +230,19 @@ export abstract class GameSocketService {
         const gameId = String(game.id);
         client.join(gameId); // join client to room of game
         GameSocketService.userGames.set(userId, game); // assign userId to map game
+        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
         GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just joined the game!`}); // broadcast message to room members
+    }
+
+    private static unregisterClient(client: Socket, game: Game): void {
+        const {userId} = client.data;
+        const gameId = String(game.id);
+        client.leave(gameId);
+        game.action(Action.LEAVE, {userId});
+        GameSocketService.userGames.delete(userId);
+        GameSocketService.deleteEmptyGame(game);
+        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
+        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just left the game!`}); // broadcast message to room members
     }
 
     public static reconnect(client: Socket): void {
