@@ -1,7 +1,7 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const countdownNumberEl = document.getElementById('countdown-number');
 const userId = Math.floor(Math.random() * 1000); // ~~prompt('user id', '0')
-const client = io('3.123.0.130/game', {auth: {userId}});
+const client = io('http://toxic-cards.fun/game', {auth: {userId}});
 const players = Array.from(document.getElementsByClassName('player'));
 const pileCards = document.getElementById('pile');
 const burnedCards = document.getElementById('burned');
@@ -276,7 +276,7 @@ client.on('update_state', (state) => {
 client.on('pong', () => {
     const ping = new Date() - startTime;
     document.querySelector('#ping').innerText = `${ping}ms`;
-    document.querySelector('#ping').style.color = ping < 60 ? 'green' : ping < 100 ? 'orange' : 'red';
+    document.querySelector('#ping').style.color = ping < 90 ? 'green' : ping < 150 ? 'orange' : 'red';
 });
 
 pingPong();
