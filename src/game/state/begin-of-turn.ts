@@ -4,7 +4,8 @@ import { Action, Game, InvalidAction } from '../game';
 export class BeginOfTurn implements State {
     private static instance: BeginOfTurn;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): BeginOfTurn {
         if (!this.instance) {

@@ -1,7 +1,7 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const countdownNumberEl = document.getElementById('countdown-number');
 const userId = Math.floor(Math.random() * 1000); // ~~prompt('user id', '0')
-const client = io('3.123.0.130/game', {auth: {userId}});
+const client = io('http://toxic-cards.fun/game', {auth: {userId}});
 const players = Array.from(document.getElementsByClassName('player'));
 const pileCards = document.getElementById('pile');
 const burnedCards = document.getElementById('burned');
@@ -123,7 +123,7 @@ function exchangeOneHandCardWithOther(event) {
             myCards.forEach((_card) => _card.classList.remove('selected'));
             card.classList.add('selected');
             myPick = card.id;
-        }
+        };
     });
 
     const otherCards = otherPlayers.map((player) => Array.from(player.getElementsByClassName('card'))).flat();
@@ -157,10 +157,10 @@ function getCardImageURL(card) {
 
 function setOtherAction() {
     players.forEach((player) => {
-       const cards = Array.from(player.getElementsByClassName('card'));
-       cards.forEach((card) => {
-           card.onclick = () => showOneOtherHandCard(+player.id, card.id);
-       });
+        const cards = Array.from(player.getElementsByClassName('card'));
+        cards.forEach((card) => {
+            card.onclick = () => showOneOtherHandCard(+player.id, card.id);
+        });
     });
 }
 
@@ -276,7 +276,7 @@ client.on('update_state', (state) => {
 client.on('pong', () => {
     const ping = new Date() - startTime;
     document.querySelector('#ping').innerText = `${ping}ms`;
-    document.querySelector('#ping').style.color = ping < 60 ? 'green' : ping < 100 ? 'orange' : 'red';
+    document.querySelector('#ping').style.color = ping < 90 ? 'green' : ping < 150 ? 'orange' : 'red';
 });
 
 pingPong();

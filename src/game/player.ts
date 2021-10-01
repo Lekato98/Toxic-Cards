@@ -6,12 +6,12 @@ import { Event, GameSocketService } from '../socket/socket';
 export class Player {
     public readonly id: number;
     public handCards: CardHand;
-    private currentScore: number;
-    private totalScore: number;
     public isBot: boolean;
-    // if player reach -100 score or left the game
     // or if the game start and there is missing players
     public isOut: boolean;
+    private currentScore: number;
+    // if player reach -100 score or left the game
+    private totalScore: number;
     private userId: number;
 
     constructor(id: number, userId?: number) {

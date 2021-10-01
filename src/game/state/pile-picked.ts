@@ -8,7 +8,8 @@ interface PilePickedPayload extends UserActionPayload {
 export class PilePicked implements State {
     private static instance: PilePicked;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): PilePicked {
         if (!this.instance) {

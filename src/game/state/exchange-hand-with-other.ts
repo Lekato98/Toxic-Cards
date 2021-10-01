@@ -10,7 +10,8 @@ interface ExchangeHandWithOtherActionPayload extends UserActionPayload {
 export class ExchangeHandWithOther implements State {
     private static instance: ExchangeHandWithOther;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): ExchangeHandWithOther {
         if (!this.instance) {

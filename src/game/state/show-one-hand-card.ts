@@ -8,7 +8,8 @@ interface ShowOneHandCardActionPayload extends UserActionPayload {
 export class ShowOneHandCard implements State {
     private static instance: ShowOneHandCard;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): ShowOneHandCard {
         if (!this.instance) {

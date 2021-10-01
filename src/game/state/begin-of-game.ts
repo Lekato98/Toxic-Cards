@@ -4,7 +4,8 @@ import { State, UserActionPayload } from './state';
 export class BeginOfGame implements State {
     private static instance: BeginOfGame;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): BeginOfGame {
         if (!this.instance) {

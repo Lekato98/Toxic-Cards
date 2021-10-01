@@ -9,7 +9,8 @@ interface ShowOneOtherHandCardActionPayload extends UserActionPayload {
 export class ShowOneOtherHandCard implements State {
     private static instance: ShowOneOtherHandCard;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): ShowOneOtherHandCard {
         if (!this.instance) {

@@ -4,7 +4,8 @@ import { State } from './state';
 export class BeginOfRound implements State {
     private static instance: BeginOfRound;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): BeginOfRound {
         if (!this.instance) {
