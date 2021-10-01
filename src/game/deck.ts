@@ -34,9 +34,7 @@ export class Deck {
     public reset(): void {
         const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
         this.cards.splice(0, this.getSize());
-        while (newSetOfCards.length) {
-            this.cards.push(newSetOfCards.pop());
-        }
+        this.cards.push(...newSetOfCards);
     }
 
     /**

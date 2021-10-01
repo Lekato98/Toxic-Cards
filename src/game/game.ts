@@ -17,6 +17,7 @@ import { EndOfTurn } from './state/end-of-turn';
 import { EndOfGame } from './state/end-of-game';
 import { Utils } from './utils';
 import { Event, GameSocketService } from '../socket/socket';
+import { BeginOfGame } from './state/begin-of-game';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -56,10 +57,11 @@ export enum Action {
 }
 
 export enum JoinType {
-    PLAYER,
-    SPECTATOR,
+    PLAYER = 'player',
+    SPECTATOR = 'spectator',
 }
 
+// @todo add resetRound&resetTurn&resetGame and maybe bot them in onBegin not onEnd
 export class Game {
     private static autoCounter: number = 0;
     public readonly id: number;
@@ -99,6 +101,8 @@ export class Game {
     private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
     private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
     public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
+    public readonly DEFAULT_MIN_NUMBER_OF_IN_PLAYERS: number = 2;
+    public readonly DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE: number = -100;
     // all actions that's need to check isLeader
     private readonly LEADER_BASED_ACTIONS = [Action.START_GAME, Action.RESTART];
     // all actions that's need to check isUserTurn (is a valid user turn)
@@ -151,7 +155,7 @@ export class Game {
         }
     }
 
-    public get numberOfPlayers(): number {
+    public get numberOfUserPlayers(): number {
         return this.userPlayer.size;
     }
 
@@ -165,6 +169,7 @@ export class Game {
 
     public setState(state: State): void {
         this.state = state;
+        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
 
         if (this.state instanceof BeginOfRound) {
             this.action(Action.BEGIN_OF_ROUND);
@@ -215,12 +220,17 @@ export class Game {
 
             default:
                 this.state.action(this, action, payload);
-                GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
         }
     }
 
     public nextTurn() {
-        this.turn = (this.turn + 1) % this.players.length;
+        let loopSafer = 0; // to avoid infinite loop caused by unnoticed bug
+        do {
+            this.turn = (this.turn + 1) % this.players.length;
+            if (loopSafer++ > this.players.length) {
+                throw new Error('Infinite loop');
+            }
+        } while(this.players[this.turn].isOut);
     }
 
     public beginOfGameAction() {
@@ -238,11 +248,12 @@ export class Game {
         this.deck.shuffle();
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
+        this.nextTurn();
         this.setState(BeginOfTurn.getInstance());
     }
 
     public beginOfTurnAction(): void {
-        if (this.passedBy === this.userPlayer.get(this.turn)) {
+        if (this.passedBy === this.players[this.turn]) {
             return this.setState(EndOfRound.getInstance());
         }
 
@@ -253,7 +264,9 @@ export class Game {
     public distributeCardsAction() {
         this.players.forEach((_player: Player) => {
             for (let i = 1; i <= this.DEFAULT_NUMBER_OF_CARDS_PER_HAND; ++i) {
-                _player.addCardToHand(this.deck.pop());
+                if (!_player.isOut) {
+                    _player.addCardToHand(this.deck.pop());
+                }
             }
         });
 
@@ -264,7 +277,7 @@ export class Game {
 
     // @todo maybe rename (remove action from name)
     public showTwoHandCardsAction() {
-        this.players.forEach((_player: Player) => _player.emitTwoCards());
+        this.players.forEach((_player: Player) => !_player.isOut && _player.emitTwoCards());
     }
 
     // @todo maybe rename (remove action from name)
@@ -276,7 +289,7 @@ export class Game {
         const pickedCard = this.pileOfCards.pick();
         this.pickedCard = pickedCard;
         const userId = this.players[this.turn].getUserId();
-        GameSocketService.emitUser(Event.STATUS, userId, {pickedCard: pickedCard.toShow()});
+        GameSocketService.emitUser(Event.STATUS, userId, {pickedCard: pickedCard.toShow(), isBurnedCard: false});
         this.setState(PilePicked.getInstance());
     }
 
@@ -285,7 +298,10 @@ export class Game {
             throw new InvalidAction('Burned cards stack is empty');
         }
 
-        this.pickedCard = this.burnedCards.pick();
+        const pickedCard = this.burnedCards.pick();
+        this.pickedCard = pickedCard;
+        const userId = this.players[this.turn].getUserId();
+        GameSocketService.emitUser(Event.STATUS, userId, {pickedCard: pickedCard.toShow(), isBurnedCard: true});
         this.setState(BurnedPicked.getInstance());
     }
 
@@ -370,14 +386,19 @@ export class Game {
         }
 
         const card = player.getCard(cardId);
-        // emit with card suit, rank
+        GameSocketService.emitUser(Event.STATUS, userId, {card: card.toShow()});
         this.setState(Burn.getInstance());
     }
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
         if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
+            const playerId = this.userPlayer.get(userId)?.id;
+            if (playerId === otherPlayerId) {
+                throw new InvalidAction('Only other hand cards are allowed');
+            }
+
             const card = this.players[otherPlayerId].getCard(otherCardId);
-            // emit with card suit, rank
+            GameSocketService.emitUser(Event.STATUS, userId, {card: card.toShow()});
             this.setState(Burn.getInstance());
         } else {
             throw new InvalidAction('Pick valid card');
@@ -391,7 +412,11 @@ export class Game {
     }
 
     public passAction() {
-        this.passedBy = this.userPlayer.get(this.turn);
+        if (!Utils.isNullOrUndefined(this.passedBy)) {
+            throw new InvalidAction('There is already player passed');
+        }
+
+        this.passedBy = this.players[this.turn];
     }
 
     public endOfTurnAction(): void {
@@ -402,24 +427,43 @@ export class Game {
     }
 
     public endOfRoundAction(): void {
+        this.calculateScores(); // calculate first
+        this.sanitizePlayers(); // then check which player is out
+
+        // then reset
         this.players.forEach((_player: Player) => _player.clearHand());
         this.pileOfCards.clear();
         this.burnedCards.clear();
         this.deck.reset();
         this.passedBy = null;
-        // @todo score calculation
-        // this.setState(BeginOfRound.getInstance());
-        // just for testing
-        this.setState(EndOfGame.getInstance());
+
+        if (this.isEndOfGame()) {
+            this.setState(EndOfGame.getInstance());
+        } else {
+            this.setState(BeginOfRound.getInstance());
+        }
     }
 
     public endOfGameAction() {
-        // this.setState(BeginOfGame.getInstance());
+        this.resetGame();
+        this.setState(BeginOfGame.getInstance());
     }
 
     // user/turn action, game action, leader action
     public restartAction() {
-        // @todo reset
+        this.resetGame();
+    }
+
+    public resetGame() {
+        this.burnedCards.clear();
+        this.pileOfCards.clear();
+        this.deck.reset();
+        this.isGameStarted = false;
+        this.pickedCard = null;
+        this.passedBy = null;
+        this.turn = null;
+        this.players.forEach((player) => player.reset());
+        this.setState(BeginOfGame.getInstance());
     }
 
     public joinAsPlayerAction(userId: number, playerId?: number): void {
@@ -443,7 +487,7 @@ export class Game {
             this.leaveAction(userId);
         }
 
-        if (!this.numberOfPlayers) {
+        if (!this.numberOfUserPlayers) {
             this.setLeader(userId);
         }
 
@@ -466,6 +510,8 @@ export class Game {
 
         switch (jointType) {
             case JoinType.PLAYER:
+                const player = this.userPlayer.get(userId);
+                player.markAsBot();
                 this.userPlayer.delete(userId);
                 break;
 
@@ -479,11 +525,47 @@ export class Game {
 
         this.jointType.delete(userId);
         this.fixLeader(userId);
+        if (this.isEndOfGame()) {
+            this.setState(BeginOfGame.getInstance());
+        }
     }
 
     private fixLeader(userId: number): void {
         if (userId === this.leader) {
             // @todo set new leader
+        }
+    }
+
+    public sanitizePlayers(): void {
+        this.players.forEach((player) => {
+            const isLost = player.getTotalScore() <= this.DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE;
+            if (isLost) {
+                player.markAsOut();
+            }
+        })
+    }
+
+    public calculateScores(): void {
+        const scores = this.players.map((player) => player.getCurrentScore());
+        const minScore = Math.min(...scores);
+        if (this.passedBy.getCurrentScore() === minScore) { // win turn
+            this.players.forEach((player) => {
+                const isTurnWinner = player.getCurrentScore() === minScore; // if he got the minScore so add positive score else negative
+                player.updateTotalScore(isTurnWinner);
+            });
+        } else { // lose turn
+            this.players.forEach((player) => {
+                const isTurnWinner = player.getCurrentScore() === minScore;
+                if (isTurnWinner) {
+                    player.updateTotalScore(); // default add positive score for the guy who beat the passed player
+                } else if(player === this.passedBy) {
+                    // the guy who passed and get beat by others will gain negative score
+                    // when player pass and lose hi score will double two times in negative
+                    player.updateTotalScore(false, 2);
+                } else {
+                    player.resetCurrentScore();
+                }
+            });
         }
     }
 
@@ -496,14 +578,20 @@ export class Game {
             id: this.id,
             leader: this.leader,
             players: this.players.map((_player) => _player.getState()),
-            numberOfPlayers: this.numberOfPlayers,
+            numberOfPlayers: this.numberOfUserPlayers,
             numberOfSpectators: this.numberOfSpectators,
             state: this.state.constructor.name,
             turn: this.turn,
-            topBurnedCards: {...this.burnedCards.top, id: undefined},
-            passedBy: this.passedBy,
+            topBurnedCards: this.burnedCards.top?.toShow() ?? {},
+            passedBy: this.passedBy?.id,
             isGameStarted: this.isGameStarted,
         };
+    }
+
+    public isEndOfGame(): boolean {
+        const numberOfInPlayers = this.players.reduce((reducer, player) => reducer + +!player.isOut, 0);
+        const numberOfBots = this.players.reduce((reducer, player) => reducer + +player.isBot, 0);
+        return numberOfInPlayers < this.DEFAULT_MIN_NUMBER_OF_IN_PLAYERS || numberOfBots === this.maxNumberOfPlayers;
     }
 
     public isJoinedAsPlayer(userId: number): boolean {
@@ -527,7 +615,7 @@ export class Game {
     }
 
     public isValidPlayer(playerId: number): boolean {
-        return 0 <= playerId && playerId < this.players.length;
+        return 0 <= playerId && playerId < this.players.length && !this.players[playerId].isOut;
     }
 
     public isValidPositionToJoin(playerId: number): boolean {
@@ -539,7 +627,11 @@ export class Game {
     }
 
     public isFull(): boolean {
-        return this.numberOfPlayers === this.maxNumberOfPlayers;
+        return this.numberOfUserPlayers === this.maxNumberOfPlayers;
+    }
+
+    public isEmpty(): boolean {
+        return this.numberOfUserPlayers === 0;
     }
 
     public isJoined(userId: number): boolean {

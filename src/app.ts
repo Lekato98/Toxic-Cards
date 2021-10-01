@@ -4,7 +4,7 @@ import * as http from 'http';
 import * as helmet from 'helmet';
 import * as cors from 'cors';
 import { Server } from 'socket.io';
-import { ioConfig } from './config';
+import { config, ioConfig } from './config';
 import { GameSocketService } from './socket/socket';
 import * as path from 'path';
 
@@ -22,5 +22,5 @@ void function bootstrap(app: Express): void {
     const server: http.Server = http.createServer(app);
     const io: Server = new Server(server, ioConfig);
     GameSocketService.init(io);
-    server.listen(3000, () => console.log('server listening to *:3000'));
+    server.listen(config.PORT, () => console.log(`server listening to *:${config.PORT}`));
 }(app);

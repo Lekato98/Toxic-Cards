@@ -57,4 +57,8 @@ export class CardHand {
     public isEmpty(): boolean {
         return this.getSize() === 0;
     }
+
+    public getWeightSum(): number {
+        return this.cards.reduce((reducer: number, card: Card) => reducer + card.weight, 0);
+    }
 }
