@@ -95,14 +95,14 @@ export class Game {
         Action.JOIN_AS_SPECTATOR,
         Action.LEAVE,
     ];
+    public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
+    public readonly DEFAULT_MIN_NUMBER_OF_IN_PLAYERS: number = 2;
+    public readonly DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE: number = -100;
     private readonly userPlayer: Map<number, Player>;
     private readonly userSpectator: Map<number, boolean>;
     private readonly jointType: Map<number, JoinType>;
     private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
     private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
-    public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
-    public readonly DEFAULT_MIN_NUMBER_OF_IN_PLAYERS: number = 2;
-    public readonly DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE: number = -100;
     // all actions that's need to check isLeader
     private readonly LEADER_BASED_ACTIONS = [Action.START_GAME, Action.RESTART];
     // all actions that's need to check isUserTurn (is a valid user turn)
@@ -144,6 +144,14 @@ export class Game {
         }
     }
 
+    public get numberOfUserPlayers(): number {
+        return this.userPlayer.size;
+    }
+
+    public get numberOfSpectators(): number {
+        return this.userSpectator.size;
+    }
+
     public static generateId(): number {
         return ++Game.autoCounter;
     }
@@ -153,14 +161,6 @@ export class Game {
         for (let id = 0; id < this.maxNumberOfPlayers; ++id) {
             this.players[id] = new Player(id);
         }
-    }
-
-    public get numberOfUserPlayers(): number {
-        return this.userPlayer.size;
-    }
-
-    public get numberOfSpectators(): number {
-        return this.userSpectator.size;
     }
 
     public setLeader(userId: number) {
@@ -230,7 +230,7 @@ export class Game {
             if (loopSafer++ > this.players.length) {
                 throw new Error('Infinite loop');
             }
-        } while(this.players[this.turn].isOut);
+        } while (this.players[this.turn].isOut);
     }
 
     public beginOfGameAction() {
@@ -530,19 +530,13 @@ export class Game {
         }
     }
 
-    private fixLeader(userId: number): void {
-        if (userId === this.leader) {
-            // @todo set new leader
-        }
-    }
-
     public sanitizePlayers(): void {
         this.players.forEach((player) => {
             const isLost = player.getTotalScore() <= this.DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE;
             if (isLost) {
                 player.markAsOut();
             }
-        })
+        });
     }
 
     public calculateScores(): void {
@@ -558,7 +552,7 @@ export class Game {
                 const isTurnWinner = player.getCurrentScore() === minScore;
                 if (isTurnWinner) {
                     player.updateTotalScore(); // default add positive score for the guy who beat the passed player
-                } else if(player === this.passedBy) {
+                } else if (player === this.passedBy) {
                     // the guy who passed and get beat by others will gain negative score
                     // when player pass and lose hi score will double two times in negative
                     player.updateTotalScore(false, 2);
@@ -636,5 +630,11 @@ export class Game {
 
     public isJoined(userId: number): boolean {
         return this.jointType.has(userId);
+    }
+
+    private fixLeader(userId: number): void {
+        if (userId === this.leader) {
+            // @todo set new leader
+        }
     }
 }

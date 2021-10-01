@@ -8,7 +8,8 @@ interface PickBurnPayload extends UserActionPayload {
 export class PickBurn implements State {
     private static instance: PickBurn;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): PickBurn {
         if (!this.instance) {

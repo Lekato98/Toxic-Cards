@@ -4,7 +4,8 @@ import { State, UserActionPayload } from './state';
 export class Burn implements State {
     private static instance: Burn;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): Burn {
         if (!this.instance) {

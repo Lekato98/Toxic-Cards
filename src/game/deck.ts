@@ -71,7 +71,7 @@ export class Deck {
     }
 
     public isValidNumberOfDecks(numberOfDecks: number): boolean {
-        return  this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
+        return this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
     }
 
     public isEmpty(): boolean {

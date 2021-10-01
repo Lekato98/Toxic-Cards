@@ -42,15 +42,6 @@ export abstract class GameSocketService {
         GameSocketService.initEvents();
     }
 
-    private static initEvents(): void {
-        GameSocketService.namespace.on(Event.CONNECTION, GameSocketService.onConnectionGame);
-        GameSocketService.namespace.on(Event.CONNECTION, GameSocketService.onDisconnect);
-    }
-
-    private static initMiddlewares(): void {
-        GameSocketService.namespace.use(GameSocketService.authMiddleware);
-    }
-
     public static authMiddleware(client: Socket, next: NextFunction): void {
         const token = client.handshake.auth;
         const query = client.handshake.query;
@@ -184,7 +175,7 @@ export abstract class GameSocketService {
             try {
                 const {userId} = client.data;
                 if (!GameSocketService.isInGame(userId)) {
-                    return GameSocketService.handleError(client, new Error(`User#${userId} is not in game`));
+                    return GameSocketService.handleError(client, new Error(`User#${ userId } is not in game`));
                 }
 
                 const {action, ...actionPayload} = payload;
@@ -213,36 +204,8 @@ export abstract class GameSocketService {
         });
     }
 
-    private static isInGame(userId: number): boolean {
-        return GameSocketService.userGames.has(userId);
-    }
-
-    private static isGameAvailable(gameId: number | string): boolean {
-        return GameSocketService.games.has(~~gameId);
-    }
-
     public static addNewUserClient(client: Socket): void {
         GameSocketService.userClients.set(client.data.userId, client);
-    }
-
-    private static registerClient(client: Socket, game: Game): void {
-        const {userId} = client.data;
-        const gameId = String(game.id);
-        client.join(gameId); // join client to room of game
-        GameSocketService.userGames.set(userId, game); // assign userId to map game
-        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
-        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just joined the game!`}); // broadcast message to room members
-    }
-
-    private static unregisterClient(client: Socket, game: Game): void {
-        const {userId} = client.data;
-        const gameId = String(game.id);
-        client.leave(gameId);
-        game.action(Action.LEAVE, {userId});
-        GameSocketService.userGames.delete(userId);
-        GameSocketService.deleteEmptyGame(game);
-        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
-        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${userId} just left the game!`}); // broadcast message to room members
     }
 
     public static reconnect(client: Socket): void {
@@ -254,11 +217,61 @@ export abstract class GameSocketService {
         GameSocketService.userClients.set(userId, client);
         client.emit(Event.STATUS, {message: 'reconnected successfully'});
         if (GameSocketService.isInGame(userId)) {
-            console.log(`User#${userId} reconnecting to game`);
+            console.log(`User#${ userId } reconnecting to game`);
             const game = GameSocketService.userGames.get(userId);
             GameSocketService.registerClient(client, game);
             client.emit(Event.UPDATE_STATE, game.getState());
         }
+    }
+
+    public static emitRoom(event: Event, roomId: string | number, payload: any): void {
+        console.log(`Event ${ event }, Room ${ roomId }, Payload`, payload);
+        GameSocketService.namespace.to(String(roomId)).emit(event, payload);
+    }
+
+    public static emitUser(event: Event, userId: number, payload: any): void {
+        if (GameSocketService.userClients.has(userId)) {
+            console.log(`Event ${ event }, User ${ userId }, Payload`, payload);
+            const client = GameSocketService.userClients.get(userId);
+            client.emit(event, payload);
+        }
+    }
+
+    private static initEvents(): void {
+        GameSocketService.namespace.on(Event.CONNECTION, GameSocketService.onConnectionGame);
+        GameSocketService.namespace.on(Event.CONNECTION, GameSocketService.onDisconnect);
+    }
+
+    private static initMiddlewares(): void {
+        GameSocketService.namespace.use(GameSocketService.authMiddleware);
+    }
+
+    private static isInGame(userId: number): boolean {
+        return GameSocketService.userGames.has(userId);
+    }
+
+    private static isGameAvailable(gameId: number | string): boolean {
+        return GameSocketService.games.has(~~gameId);
+    }
+
+    private static registerClient(client: Socket, game: Game): void {
+        const {userId} = client.data;
+        const gameId = String(game.id);
+        client.join(gameId); // join client to room of game
+        GameSocketService.userGames.set(userId, game); // assign userId to map game
+        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
+        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just joined the game!`}); // broadcast message to room members
+    }
+
+    private static unregisterClient(client: Socket, game: Game): void {
+        const {userId} = client.data;
+        const gameId = String(game.id);
+        client.leave(gameId);
+        game.action(Action.LEAVE, {userId});
+        GameSocketService.userGames.delete(userId);
+        GameSocketService.deleteEmptyGame(game);
+        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
+        GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just left the game!`}); // broadcast message to room members
     }
 
     private static handleError(client: Socket, err: Error): void {
@@ -269,19 +282,6 @@ export abstract class GameSocketService {
     private static deleteEmptyGame(game: Game): void {
         if (!game.numberOfUserPlayers) {
             GameSocketService.games.delete(game.id);
-        }
-    }
-
-    public static emitRoom(event: Event, roomId: string | number, payload: any): void {
-        console.log(`Event ${event}, Room ${roomId}, Payload`, payload);
-        GameSocketService.namespace.to(String(roomId)).emit(event, payload);
-    }
-
-    public static emitUser(event: Event, userId: number, payload: any): void {
-        if (GameSocketService.userClients.has(userId)) {
-            console.log(`Event ${event}, User ${userId}, Payload`, payload);
-            const client = GameSocketService.userClients.get(userId);
-            client.emit(event, payload);
         }
     }
 }

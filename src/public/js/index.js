@@ -123,7 +123,7 @@ function exchangeOneHandCardWithOther(event) {
             myCards.forEach((_card) => _card.classList.remove('selected'));
             card.classList.add('selected');
             myPick = card.id;
-        }
+        };
     });
 
     const otherCards = otherPlayers.map((player) => Array.from(player.getElementsByClassName('card'))).flat();
@@ -157,10 +157,10 @@ function getCardImageURL(card) {
 
 function setOtherAction() {
     players.forEach((player) => {
-       const cards = Array.from(player.getElementsByClassName('card'));
-       cards.forEach((card) => {
-           card.onclick = () => showOneOtherHandCard(+player.id, card.id);
-       });
+        const cards = Array.from(player.getElementsByClassName('card'));
+        cards.forEach((card) => {
+            card.onclick = () => showOneOtherHandCard(+player.id, card.id);
+        });
     });
 }
 

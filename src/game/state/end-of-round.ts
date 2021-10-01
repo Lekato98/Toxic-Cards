@@ -4,7 +4,8 @@ import { State, UserActionPayload } from './state';
 export class EndOfRound implements State {
     private static instance: EndOfRound;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): EndOfRound {
         if (!this.instance) {

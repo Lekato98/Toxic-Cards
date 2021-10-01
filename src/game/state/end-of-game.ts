@@ -4,7 +4,8 @@ import { Action, Game, InvalidAction } from '../game';
 export class EndOfGame implements State {
     private static instance: EndOfGame;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): EndOfGame {
         if (!this.instance) {
