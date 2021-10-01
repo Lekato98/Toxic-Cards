@@ -1,7 +1,7 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const countdownNumberEl = document.getElementById('countdown-number');
 const userId = Math.floor(Math.random() * 1000); // ~~prompt('user id', '0')
-const client = io('127.0.0.1:3000/game', {auth: {userId}});
+const client = io('3.123.0.130/game', {auth: {userId}});
 const players = Array.from(document.getElementsByClassName('player'));
 const pileCards = document.getElementById('pile');
 const burnedCards = document.getElementById('burned');

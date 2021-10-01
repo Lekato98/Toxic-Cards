@@ -392,6 +392,11 @@ export class Game {
 
     public showOneOtherHandCardAction(userId: number, otherPlayerId: number, otherCardId: string) {
         if (this.isValidPlayer(otherPlayerId) && this.isValidPlayerCard(otherPlayerId, otherCardId)) {
+            const playerId = this.userPlayer.get(userId)?.id;
+            if (playerId === otherPlayerId) {
+                throw new InvalidAction('Only other hand cards are allowed');
+            }
+
             const card = this.players[otherPlayerId].getCard(otherCardId);
             GameSocketService.emitUser(Event.STATUS, userId, {card: card.toShow()});
             this.setState(Burn.getInstance());
