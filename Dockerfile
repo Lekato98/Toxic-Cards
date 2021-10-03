@@ -6,7 +6,6 @@ WORKDIR /app
 
 COPY ./build /app/build
 COPY ./src/public /app/build/public
-COPY ./node_modules /app/node_modules
 COPY ./package.json /app/package.json
 COPY ./package-lock.json /app/package-lock.json
 
