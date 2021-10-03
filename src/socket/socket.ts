@@ -136,7 +136,7 @@ export abstract class GameSocketService {
                 }
 
                 const game = GameSocketService.games.get(gameId);
-                game.action(Action.JOIN_AS_PLAYER, {userId, playerId});
+                game.doAction(Action.JOIN_AS_PLAYER, {userId, playerId});
                 GameSocketService.registerClient(client, game);
             } catch (e) {
                 GameSocketService.handleError(client, e);
@@ -156,7 +156,7 @@ export abstract class GameSocketService {
                 });
 
                 if (game) {
-                    game.action(Action.JOIN_AS_PLAYER, {userId});
+                    game.doAction(Action.JOIN_AS_PLAYER, {userId});
                     return GameSocketService.registerClient(client, game);
                 }
 
@@ -181,7 +181,7 @@ export abstract class GameSocketService {
                 const {action, ...actionPayload} = payload;
                 const game = GameSocketService.userGames.get(userId);
                 actionPayload.userId = userId;
-                game.action(payload.action, actionPayload);
+                game.doAction(payload.action, actionPayload);
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -267,7 +267,7 @@ export abstract class GameSocketService {
         const {userId} = client.data;
         const gameId = String(game.id);
         client.leave(gameId);
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         GameSocketService.userGames.delete(userId);
         GameSocketService.deleteEmptyGame(game);
         GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state

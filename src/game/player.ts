@@ -36,7 +36,7 @@ export class Player {
         return this.handCards.getCard(cardId);
     }
 
-    public emitTwoCards(): void {
+    public showTwoHandCards(): void {
         const firstCard = 0;
         const secondCard = 1;
         const cards = [

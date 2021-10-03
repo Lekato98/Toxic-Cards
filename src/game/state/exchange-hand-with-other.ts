@@ -1,5 +1,6 @@
 import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { GameAction } from '../game-action';
 
 interface ExchangeHandWithOtherActionPayload extends UserActionPayload {
     cardId: string;
@@ -21,7 +22,7 @@ export class ExchangeHandWithOther implements State {
         return this.instance;
     }
 
-    public action(context: Game, action: Action, payload?: ExchangeHandWithOtherActionPayload): void {
+    public action(context: GameAction, action: Action, payload?: ExchangeHandWithOtherActionPayload): void {
         switch (action) {
             case Action.EXCHANGE_HAND_WITH_OTHER:
                 return context.exchangeHandWithOther(

@@ -57,27 +57,27 @@ describe('Test Game', () => {
 
     test('Spectator 1 JOIN_AS_SPECTATOR', () => {
         const userId = 5;
-        game.action(Action.JOIN_AS_SPECTATOR, {userId});
+        game.doAction(Action.JOIN_AS_SPECTATOR, {userId});
         expect(game.numberOfSpectators).toBe(1);
         expect(game.isJoinedAsSpectator(userId)).toBeTruthy();
     });
 
     test('Spectator 1 LEAVE', () => {
         const userId = 5;
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         expect(game.numberOfSpectators).toBe(0);
         expect(game.isJoinedAsSpectator(userId)).toBeFalsy();
     });
 
     test('Spectator 1 invalid action trying to leave but already left LEAVE', () => {
         const userId = 5;
-        const mock = () => game.action(Action.LEAVE, {userId});
+        const mock = () => game.doAction(Action.LEAVE, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('User 1 JOIN_AS_PLAYER', () => {
         const userId = usersId[0];
-        game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 0});
+        game.doAction(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 0});
         expect(game.leader).toBe(userId);
         expect(game.isGameStarted).toBe(false);
         expect(game.numberOfUserPlayers).toBe(1);
@@ -88,13 +88,13 @@ describe('Test Game', () => {
 
     test('User 1 trying to join as player one more time JOIN_AS_PLAYER', () => {
         const userId = usersId[0];
-        const mock = () => game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 0});
+        const mock = () => game.doAction(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 0});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('User 2 JOIN_AS_PLAYER', () => {
         const userId = usersId[1];
-        game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 1});
+        game.doAction(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 1});
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
         expect(game.numberOfUserPlayers).toBe(2);
@@ -105,13 +105,13 @@ describe('Test Game', () => {
 
     test('User 2 trying to make leader action JOIN_AS_PLAYER', () => {
         const userId = usersId[1];
-        const mock = () => game.action(Action.START_GAME, {userId});
+        const mock = () => game.doAction(Action.START_GAME, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('User 3 JOIN_AS_PLAYER', () => {
         const userId = usersId[2];
-        game.action(Action.JOIN_AS_PLAYER, {userId, playerId: 2});
+        game.doAction(Action.JOIN_AS_PLAYER, {userId, playerId: 2});
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
         expect(game.numberOfUserPlayers).toBe(3);
@@ -122,14 +122,14 @@ describe('Test Game', () => {
 
     test('User 4 invalid trying to reach max limit JOIN_AS_PLAYER', () => {
         const userId = 4;
-        const mock = () => game.action(Action.JOIN_AS_PLAYER, {userId, playerId: 2});
+        const mock = () => game.doAction(Action.JOIN_AS_PLAYER, {userId, playerId: 2});
 
         expect(mock).toThrow(InvalidAction);
     });
 
     test('User 4 invalid trying to join with unknown playerId JOIN_AS_PLAYER', () => {
         const userId = 4;
-        const mock = () => game.action(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 5});
+        const mock = () => game.doAction(Action.JOIN_AS_PLAYER, {userId: userId, playerId: 5});
 
         expect(mock).toThrow(InvalidAction);
     });
@@ -139,7 +139,7 @@ describe('Test Game', () => {
         const tempMock = game.isGameStarted;
         game.isGameStarted = true;
 
-        const mock = () => game.action(Action.START_GAME, {userId});
+        const mock = () => game.doAction(Action.START_GAME, {userId});
         expect(mock).toThrow(InvalidAction);
 
         game.isGameStarted = tempMock;
@@ -147,53 +147,53 @@ describe('Test Game', () => {
 
     test('Leader User START_GAME', () => {
         const userId = usersId[0];
-        const tempMock = game.beginOfRoundAction;
-        game.beginOfRoundAction = () => ({});
+        const tempMock = game.action.beginOfRoundAction;
+        game.action.beginOfRoundAction = () => ({});
 
         expect(game.state).toBeInstanceOf(BeginOfGame);
-        game.action(Action.START_GAME, {userId: userId});
+        game.doAction(Action.START_GAME, {userId: userId});
         expect(game.isGameStarted).toBe(true);
         expect(game.state).toBeInstanceOf(BeginOfRound);
         expect(game.turn).toBeDefined();
 
-        game.beginOfRoundAction = tempMock;
+        game.action.beginOfRoundAction = tempMock;
     });
 
     test('Internal Call START_ROUND', () => {
         const randomPlayer = game.players[0];
         const numberOfCardsInNormalSet = 52;
-        const tempMock = game.beginOfTurnAction;
-        game.beginOfTurnAction = () => ({});
+        const tempMock = game.action.beginOfTurnAction;
+        game.action.beginOfTurnAction = () => ({});
 
         expect(randomPlayer.handCards.isEmpty()).toBeTruthy();
-        game.action(Action.BEGIN_OF_ROUND);
+        game.doAction(Action.BEGIN_OF_ROUND);
         expect(game.pileOfCards.getSize()).toBe(numberOfCardsInNormalSet - usersId.length * game.DEFAULT_NUMBER_OF_CARDS_PER_HAND);
         expect(randomPlayer.handCards.getSize()).toBe(game.DEFAULT_NUMBER_OF_CARDS_PER_HAND);
         expect(game.state).toBeInstanceOf(BeginOfTurn);
 
-        game.beginOfTurnAction = tempMock;
+        game.action.beginOfTurnAction = tempMock;
     });
 
     test('User 1 trying to call an internal action BEGIN_OF_TURN', () => {
         const userId = game.turn;
-        const mock = () => game.action(Action.BEGIN_OF_TURN, {userId});
+        const mock = () => game.doAction(Action.BEGIN_OF_TURN, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('First Turn BEGIN_OF_TURN', () => {
-        game.action(Action.BEGIN_OF_TURN);
+        game.doAction(Action.BEGIN_OF_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
     test('First Turn invalid action when try to burn one hand card PICK_BURN', () => {
         const userId = game.turn;
-        const mock = () => game.action(Action.BURN_ONE_HAND_CARD, {userId});
+        const mock = () => game.doAction(Action.BURN_ONE_HAND_CARD, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('First Turn invalid action when try to pick from burned cards PICK_BURN', () => {
         const userId = game.turn;
-        const mock = () => game.action(Action.PICK_CARD_FROM_BURNED, {userId});
+        const mock = () => game.doAction(Action.PICK_CARD_FROM_BURNED, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
@@ -202,7 +202,7 @@ describe('Test Game', () => {
         const pileOfCards = game.pileOfCards;
         const newSize = pileOfCards.getSize() - 1;
         const pileCard = game.pileOfCards.top;
-        game.action(Action.PICK_CARD_FROM_PILE, {userId});
+        game.doAction(Action.PICK_CARD_FROM_PILE, {userId});
         expect(game.state).toBeInstanceOf(PilePicked);
         expect(game.pickedCard).toBe(pileCard);
         expect(game.pileOfCards.getSize()).toBe(newSize);
@@ -215,45 +215,45 @@ describe('Test Game', () => {
         const randomCardOrder = Math.floor(Math.random() * player.handCards.getSize());
         const randomCard = player.handCards.getCardByOrder(randomCardOrder);
         const cardId = randomCard.id;
-        const tempMock = game.burnAction;
-        game.burnAction = () => ({});
+        const tempMock = game.action.burnAction;
+        game.action.burnAction = () => ({});
 
-        game.action(Action.EXCHANGE_PICK_WITH_HAND, {userId, cardId: randomCard.id});
+        game.doAction(Action.EXCHANGE_PICK_WITH_HAND, {userId, cardId: randomCard.id});
 
         expect(game.pickedCard.id).toEqual(cardId);
         expect(game.pickedCard.id).not.toEqual(pickedCardId);
         expect(game.state).toBeInstanceOf(Burn);
 
-        game.burnAction = tempMock;
+        game.action.burnAction = tempMock;
     });
 
     test('First Turn in BURN', () => {
         const pickedCard = game.pickedCard;
-        const tempMock = game.endOfTurnAction;
-        game.endOfTurnAction = () => ({});
+        const tempMock = game.action.endOfTurnAction;
+        game.action.endOfTurnAction = () => ({});
 
-        game.action(Action.BURN_CARD);
+        game.doAction(Action.BURN_CARD);
         expect(game.burnedCards.top).toBe(pickedCard);
         expect(game.pickedCard).toBeNull();
         expect(game.state).toBeInstanceOf(EndOfTurn);
 
-        game.endOfTurnAction = tempMock;
+        game.action.endOfTurnAction = tempMock;
     });
 
     test('First Turn in END_OF_TURN', () => {
-        const currentTurn = (game.turn + 1) % game.maxNumberOfPlayers;
-        const tempMock = game.beginOfTurnAction;
-        game.beginOfTurnAction = () => ({});
+        const currentTurn = (game.turn + 1) % game.numberOfPlayers;
+        const tempMock = game.action.beginOfTurnAction;
+        game.action.beginOfTurnAction = () => ({});
 
-        game.action(Action.END_OF_TURN);
+        game.doAction(Action.END_OF_TURN);
         expect(game.turn).toEqual(currentTurn);
         expect(game.state).toBeInstanceOf(BeginOfTurn);
 
-        game.beginOfTurnAction = tempMock;
+        game.action.beginOfTurnAction = tempMock;
     });
 
     test('Second Turn in BEGIN_OF_TURN', () => {
-        game.action(Action.BEGIN_OF_TURN);
+        game.doAction(Action.BEGIN_OF_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
@@ -262,8 +262,8 @@ describe('Test Game', () => {
         const burnedTop = game.burnedCards.top;
 
         expect(game.pickedCard).toBeNull();
-        game.action(Action.PICK_CARD_FROM_BURNED, {userId});
-        game.action(Action.PASS, {userId});
+        game.doAction(Action.PICK_CARD_FROM_BURNED, {userId});
+        game.doAction(Action.PASS, {userId});
         expect(game.pickedCard).toBe(burnedTop);
         expect(game.state).toBeInstanceOf(BurnedPicked);
     });
@@ -275,17 +275,17 @@ describe('Test Game', () => {
         const randomCardOrder = Math.floor(Math.random() * player.handCards.getSize());
         const randomCard = player.handCards.getCardByOrder(randomCardOrder);
         const cardId = randomCard.id;
-        const tempMock = game.burnAction;
-        game.burnAction = () => ({});
+        const tempMock = game.action.burnAction;
+        game.action.burnAction = () => ({});
 
-        game.action(Action.EXCHANGE_PICK_WITH_HAND, {userId, cardId: randomCard.id});
+        game.doAction(Action.EXCHANGE_PICK_WITH_HAND, {userId, cardId: randomCard.id});
         expect(game.pickedCard.id).toEqual(cardId);
         expect(game.pickedCard.id).not.toEqual(pickedCardId);
         expect(game.state).toBeInstanceOf(Burn);
 
-        game.burnAction = tempMock;
+        game.action.burnAction = tempMock;
 
-        game.action(Action.BURN_CARD);
+        game.doAction(Action.BURN_CARD);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
@@ -298,10 +298,10 @@ describe('Test Game', () => {
         const randomCard = player.handCards.getCardByOrder(randomCardOrder);
         const cardId = randomCard.id;
 
-        const tempMock = game.endOfTurnAction;
-        game.endOfTurnAction = () => ({});
+        const tempMock = game.action.endOfTurnAction;
+        game.action.endOfTurnAction = () => ({});
 
-        game.action(Action.BURN_ONE_HAND_CARD, {userId, cardId});
+        game.doAction(Action.BURN_ONE_HAND_CARD, {userId, cardId});
         expect(player.handCards.getSize()).not.toEqual(oldSize);
 
         if (oldSize > player.handCards.getSize()) { // if success burn
@@ -312,9 +312,9 @@ describe('Test Game', () => {
 
         expect(game.state).toBeInstanceOf(EndOfTurn);
 
-        game.endOfTurnAction = tempMock;
+        game.action.endOfTurnAction = tempMock;
 
-        game.action(Action.END_OF_TURN);
+        game.doAction(Action.END_OF_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
@@ -328,11 +328,11 @@ describe('Test Game', () => {
         const randomOtherCard = randomPlayer.handCards.getCardByOrder(1);
         const otherCardId = randomOtherCard.id;
         const mock = () => randomPlayer.handCards.getCardByOrder(53);
-        const anotherMock = () => game.action(Action.PICK_CARD_FROM_PILE, {userId});
-        const tempMock = game.burnAction;
-        game.burnAction = () => ({});
+        const anotherMock = () => game.doAction(Action.PICK_CARD_FROM_PILE, {userId});
+        const tempMock = game.action.burnAction;
+        game.action.burnAction = () => ({});
 
-        game.action(Action.PICK_CARD_FROM_PILE, {userId});
+        game.doAction(Action.PICK_CARD_FROM_PILE, {userId});
         expect(game.state).toBeInstanceOf(PilePicked);
 
         game.pickedCard = new Card(CardSuit.SPADES, CardRank.FIVE);
@@ -340,7 +340,7 @@ describe('Test Game', () => {
         expect(CardUtil.isBlack(game.pickedCard)).toBeTruthy();
         expect(CardUtil.isBlack(CardSuit.DIAMONDS)).toBeFalsy();
         expect(CardUtil.isKing(game.pickedCard)).toBeFalsy();
-        game.action(Action.THROW_CARD, {userId});
+        game.doAction(Action.THROW_CARD, {userId});
         expect(mock).toThrow(Error);
 
         expect(anotherMock).toThrow(InvalidAction);
@@ -350,27 +350,27 @@ describe('Test Game', () => {
         game.pickedCard = new Card(CardSuit.DIAMONDS, CardRank.JACK);
         expect(CardUtil.isRed(game.pickedCard)).toBeTruthy();
         expect(CardUtil.getColor(game.pickedCard)).toBe(CardColor.RED);
-        game.action(Action.THROW_CARD, {userId});
+        game.doAction(Action.THROW_CARD, {userId});
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(ExchangeHandWithOther);
-        game.action(Action.EXCHANGE_HAND_WITH_OTHER, {userId, cardId, otherPlayerId, otherCardId});
+        game.doAction(Action.EXCHANGE_HAND_WITH_OTHER, {userId, cardId, otherPlayerId, otherCardId});
 
         // cardId becomes otherCardId and vice versa
         game.setState(PilePicked.getInstance());
         game.pickedCard = new Card(CardSuit.CLUBS, CardRank.SEVEN);
-        game.action(Action.THROW_CARD, {userId});
+        game.doAction(Action.THROW_CARD, {userId});
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(ShowOneHandCard);
-        game.action(Action.SHOW_ONE_HAND_CARD, {userId, cardId: otherCardId});
+        game.doAction(Action.SHOW_ONE_HAND_CARD, {userId, cardId: otherCardId});
 
         game.setState(PilePicked.getInstance());
         game.pickedCard = new Card(CardSuit.CLUBS, CardRank.TEN);
 
-        game.burnAction = tempMock;
-        game.action(Action.THROW_CARD, {userId});
+        game.action.burnAction = tempMock;
+        game.doAction(Action.THROW_CARD, {userId});
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(ShowOneOtherHandCard);
-        game.action(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId: cardId});
+        game.doAction(Action.SHOW_ONE_OTHER_HAND_CARD, {userId, otherPlayerId, otherCardId: cardId});
 
         expect(anotherMock).toThrow(InvalidAction);
         expect(game.state).toBeInstanceOf(PickBurn);
@@ -380,7 +380,7 @@ describe('Test Game', () => {
         const userId = usersId[2];
         const oldNumberOfPlayers = game.numberOfUserPlayers;
         const newNumberOfPlayers = oldNumberOfPlayers - 1;
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
         expect(game.isFull()).toBeFalsy();
     });
@@ -389,7 +389,7 @@ describe('Test Game', () => {
         const userId = usersId[1];
         const oldNumberOfPlayers = game.numberOfUserPlayers;
         const newNumberOfPlayers = oldNumberOfPlayers - 1;
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
         expect(game.isFull()).toBeFalsy();
         expect(game.isEndOfGame()).toBeFalsy();
@@ -399,7 +399,7 @@ describe('Test Game', () => {
         const userId = usersId[0];
         const oldNumberOfPlayers = game.numberOfUserPlayers;
         const newNumberOfPlayers = oldNumberOfPlayers - 1;
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         expect(game.numberOfUserPlayers).toBe(newNumberOfPlayers);
         expect(game.isFull()).toBeFalsy();
         expect(game.isEndOfGame()).toBeTruthy();

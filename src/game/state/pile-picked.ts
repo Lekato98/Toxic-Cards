@@ -1,5 +1,6 @@
 import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { GameAction } from '../game-action';
 
 interface PilePickedPayload extends UserActionPayload {
     cardId?: string;
@@ -19,7 +20,7 @@ export class PilePicked implements State {
         return this.instance;
     }
 
-    public action(context: Game, action: Action, payload?: PilePickedPayload): void {
+    public action(context: GameAction, action: Action, payload?: PilePickedPayload): void {
         switch (action) {
             case Action.THROW_CARD:
                 return context.useAbilityAction();
