@@ -1,5 +1,5 @@
 import { State, UserActionPayload } from './state';
-import { Action, Game, InvalidAction } from '../game';
+import { Action, InvalidAction } from '../game';
 import { GameAction } from '../game-action';
 
 export class EndOfTurn implements State {

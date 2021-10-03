@@ -95,6 +95,10 @@ export class Player {
         this.currentScore = 0;
     }
 
+    public hasCard(cardId: string): boolean {
+        return this.handCards.contains(cardId);
+    }
+
     public reset(): void {
         this.resetTotalScore();
         this.resetCurrentScore();

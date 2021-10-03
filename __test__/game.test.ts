@@ -8,12 +8,12 @@ import { EndOfTurn } from '../src/game/state/end-of-turn';
 import { BeginOfTurn } from '../src/game/state/begin-of-turn';
 import { BurnedPicked } from '../src/game/state/burned-picked';
 import { Card, CardColor, CardRank, CardSuit, CardUtil } from '../src/game/card';
-import { EndOfGame } from '../src/game/state/end-of-game';
 import { ExchangeHandWithOther } from '../src/game/state/exchange-hand-with-other';
 import { ShowOneHandCard } from '../src/game/state/show-one-hand-card';
 import { ShowOneOtherHandCard } from '../src/game/state/show-one-other-hand-card';
 import { Deck } from '../src/game/deck';
 import { GameSocketService } from '../src/socket/socket';
+import { GameConfig } from '../src/game/game-config';
 
 describe('Test Game', () => {
     const usersId = [0, 1, 2];
@@ -27,24 +27,25 @@ describe('Test Game', () => {
     });
 
     test('Create Game with creator id', () => {
-        const maxNumberOfPlayers = 5;
+        const numberOfPlayers = 5;
         const initialState = BeginOfGame.getInstance();
-        const tGame = new Game(maxNumberOfPlayers, initialState, usersId[0]);
+        const gameConfig = new GameConfig({numberOfPlayers});
+        const tGame = new Game(gameConfig, initialState, usersId[0]);
         expect(tGame.leader).toBe(usersId[0]);
         expect(tGame.numberOfUserPlayers).toBe(1);
     });
 
-    test('Create Game with invalid number of players', () => {
-        const maxNumberOfPlayers = 0;
-        const initialState = BeginOfGame.getInstance();
-        const mock = () => new Game(maxNumberOfPlayers, initialState);
+    test('Create GameConfig with invalid number of players', () => {
+        const numberOfPlayers = 0;
+        const mock = () => new GameConfig({numberOfPlayers});
         expect(mock).toThrow(Error);
     });
 
     test('Create Game With 3 players', () => {
-        const maxNumberOfPlayers = 3;
+        const numberOfPlayers = 3;
         const initialState = BeginOfGame.getInstance();
-        game = new Game(maxNumberOfPlayers, initialState);
+        const gameConfig = new GameConfig({numberOfPlayers});
+        game = new Game(gameConfig, initialState);
         expect(game.burnedCards.isEmpty()).toBe(true);
         expect(game.burnedCards.getSize()).toBe(0);
         expect(game.isGameStarted).toBe(false);
@@ -52,7 +53,7 @@ describe('Test Game', () => {
         expect(game.numberOfUserPlayers).toBe(0);
         expect(game.leader).toBeNull();
         expect(game.passedBy).toBeNull();
-        expect(game.players.length).toBe(maxNumberOfPlayers);
+        expect(game.players.length).toBe(numberOfPlayers);
     });
 
     test('Spectator 1 JOIN_AS_SPECTATOR', () => {
@@ -81,7 +82,7 @@ describe('Test Game', () => {
         expect(game.leader).toBe(userId);
         expect(game.isGameStarted).toBe(false);
         expect(game.numberOfUserPlayers).toBe(1);
-        expect(game.isLeaderUser(userId)).toBe(true);
+        expect(game.isLeader(userId)).toBe(true);
         expect(game.isJoinedAsPlayer(userId)).toBe(true);
         expect(game.isFull()).toBe(false);
     });
@@ -98,7 +99,7 @@ describe('Test Game', () => {
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
         expect(game.numberOfUserPlayers).toBe(2);
-        expect(game.isLeaderUser(userId)).toBeFalsy();
+        expect(game.isLeader(userId)).toBeFalsy();
         expect(game.isJoinedAsPlayer(userId)).toBeTruthy();
         expect(game.isFull()).toBeFalsy();
     });
@@ -115,7 +116,7 @@ describe('Test Game', () => {
         expect(game.leader).toBe(usersId[0]);
         expect(game.isGameStarted).toBeFalsy();
         expect(game.numberOfUserPlayers).toBe(3);
-        expect(game.isLeaderUser(userId)).toBeFalsy();
+        expect(game.isLeader(userId)).toBeFalsy();
         expect(game.isJoinedAsPlayer(userId)).toBeTruthy();
         expect(game.isFull()).toBeTruthy();
     });

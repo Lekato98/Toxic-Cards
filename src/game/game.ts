@@ -13,6 +13,7 @@ import { Utils } from './utils';
 import { Event, GameSocketService } from '../socket/socket';
 import { BeginOfGame } from './state/begin-of-game';
 import { GameAction } from './game-action';
+import { GameConfig } from './game-config';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -69,9 +70,12 @@ export class Game {
     public passedBy: Player;
     public pickedCard: Card;
     public turn: number;
-    public numberOfPlayers: number;
+    public readonly numberOfPlayers: number;
     public isGameStarted: boolean;
     public leader: number;
+    public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
+    public readonly DEFAULT_MIN_NUMBER_OF_IN_PLAYERS: number = 2;
+    public readonly DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE: number = -100;
     // all actions that's will be called directly from game
     public readonly INTERNAL_BASED_ACTION = [
         Action.START_GAME,
@@ -91,14 +95,9 @@ export class Game {
         Action.JOIN_AS_SPECTATOR,
         Action.LEAVE,
     ];
-    public readonly DEFAULT_NUMBER_OF_CARDS_PER_HAND: number = 4;
-    public readonly DEFAULT_MIN_NUMBER_OF_IN_PLAYERS: number = 2;
-    public readonly DEFAULT_MINIMUM_PLAYER_TOTAL_SCORE: number = -100;
     private readonly userPlayer: Map<number, Player>;
     private readonly userSpectator: Map<number, boolean>;
     private readonly jointType: Map<number, JoinType>;
-    private readonly MIN_NUMBER_OF_PLAYERS: number = 3;
-    private readonly MAX_NUMBER_OF_PLAYERS: number = 8;
     // all actions that's need to check isLeader
     private readonly LEADER_BASED_ACTIONS = [Action.START_GAME, Action.RESTART];
     // all actions that's need to check isUserTurn (is a valid user turn)
@@ -115,14 +114,15 @@ export class Game {
         Action.BURN_ONE_HAND_CARD,
     ];
 
-    constructor(numberOfPlayers: number, state: State, creatorId: number = null) {
-        if (!this.isValidNumberOfPlayers(numberOfPlayers)) {
-            throw new Error('Invalid number of players');
-        }
+    constructor(gameConfigs: GameConfig, state: State, creatorId?: number) {
+        const {
+            numberOfPlayers,
+            deckSize,
+        } = gameConfigs;
 
         this.id = Game.generateId();
         this.numberOfPlayers = numberOfPlayers;
-        this.deck = new Deck();
+        this.deck = new Deck(deckSize);
         this.burnedCards = new CardStack();
         this.pileOfCards = new CardStack();
         this.userPlayer = new Map<number, Player>();
@@ -134,7 +134,7 @@ export class Game {
         this.isGameStarted = false;
         this.pickedCard = null;
         this.passedBy = null;
-        this.leader = creatorId;
+        this.leader = creatorId ?? null;
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
@@ -185,7 +185,7 @@ export class Game {
 
     public validateUsingActionBased(action: Action, userId?: number): boolean {
         if (this.LEADER_BASED_ACTIONS.includes(action)) {
-            return this.isLeaderUser(userId);
+            return this.isLeader(userId);
         } else if (this.USER_BASED_ACTION.includes(action)) {
             return !Utils.isNullOrUndefined(userId);
         } else if (this.USER_TURN_BASED_ACTION.includes(action)) {
@@ -244,7 +244,7 @@ export class Game {
 
     public joinAsPlayer(userId: number, playerId?: number): void {
         if (this.isJoinedAsPlayer(userId)) {
-            throw new InvalidAction('Player already joined');
+            throw new InvalidAction('Player is already joined');
         }
 
         if (Utils.isNullOrUndefined(playerId)) {
@@ -376,11 +376,7 @@ export class Game {
         return this.turn === this.userPlayer.get(userId).id;
     }
 
-    public isValidNumberOfPlayers(numberOfPlayers: number): boolean {
-        return this.MIN_NUMBER_OF_PLAYERS <= numberOfPlayers && numberOfPlayers <= this.MAX_NUMBER_OF_PLAYERS;
-    }
-
-    public isLeaderUser(userId: number): boolean {
+    public isLeader(userId: number): boolean {
         return this.leader === userId;
     }
 
@@ -393,7 +389,7 @@ export class Game {
     }
 
     public isValidPlayerCard(playerId: number, cardId: string): boolean {
-        return this.isValidPlayer(playerId) && !Utils.isNullOrUndefined(this.players[playerId].handCards.getCard(cardId));
+        return this.isValidPlayer(playerId) && !Utils.isNullOrUndefined(this.players[playerId].hasCard(cardId));
     }
 
     public isFull(): boolean {

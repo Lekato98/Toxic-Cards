@@ -112,7 +112,6 @@ function swapAction() {
 }
 
 function exchangeOneHandCardWithOther(event) {
-    // @todo
     const [myPlayer] = [...players];
     const otherPlayers = [...players];
     otherPlayers.splice(0, 1);

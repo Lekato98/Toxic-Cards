@@ -208,7 +208,7 @@ export class GameAction {
     }
 
     public endOfTurnAction(): void {
-        this.game.pickedCard = null; // @todo maybe remove it and put it in burn action
+        this.game.pickedCard = null; // @todo maybe remove it and put it in burn action/resetTurn
 
         this.game.nextTurn();
         this.game.setState(BeginOfTurn.getInstance());

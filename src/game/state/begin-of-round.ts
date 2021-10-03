@@ -1,4 +1,4 @@
-import { Action, Game, InvalidAction } from '../game';
+import { Action, InvalidAction } from '../game';
 import { State } from './state';
 import { GameAction } from '../game-action';
 
