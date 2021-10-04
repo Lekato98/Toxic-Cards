@@ -16,7 +16,14 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '/public')));
 app.set('views', path.join(__dirname, '/public/views'));
 app.set('view engine', 'ejs');
-app.get('/', (req: Request, res: Response) => res.render('index'));
+app.get('/', (req: Request, res: Response) => {
+    res.render('index', {
+        DYNAMIC_ENDPOINT:
+            config.NODE_ENV === 'production' ?
+                'http://toxic-cards.fun' :
+                `127.0.0.1:${ config.PORT }`,
+    });
+});
 
 void function bootstrap(app: Express): void {
     const server: http.Server = http.createServer(app);

@@ -202,6 +202,10 @@ export class Card {
         this.weight = card.weight;
     }
 
+    public flip(): void {
+        this.isFaceUp = !this.isFaceUp;
+    }
+
     public getState() {
         return {
             id: this.id,
@@ -213,11 +217,6 @@ export class Card {
             id: this.id,
             suit: this.suit,
             rank: this.rank,
-            weight: this.weight,
         };
-    }
-
-    public flip(): void {
-        this.isFaceUp = !this.isFaceUp;
     }
 }
