@@ -51,20 +51,25 @@ function buildPlayer(playerDiv, player) {
 
 function buildCard(cardDiv, card) {
     cardDiv.id = card?.id;
-    if (card.suit) { // todo use isFaceUp later ....
+    if (card?.suit) { // todo use isFaceUp later ....
         cardDiv.style.backgroundImage = `url(images/cards/${card.suit}/${card.rank}.png)`;
     }
 }
 
-function buildDeck(deckDiv) {
+function buildDeck(deckDiv, topBurnedCard) {
     const topBurnedCardDiv = document.createElement('div');
     const topPileCardDiv = document.createElement('div');
 
     topBurnedCardDiv.classList.add('card', 'burnt-card');
     topPileCardDiv.classList.add('card');
 
+    topBurnedCardDiv.onclick = () => emitAction(Action.PICK_CARD_FROM_BURNED);
+    topPileCardDiv.onclick = () => emitAction(Action.PICK_CARD_FROM_PILE);
+
     deckDiv.append(topBurnedCardDiv);
     deckDiv.append(topPileCardDiv);
+
+    buildCard(topBurnedCardDiv, topBurnedCard);
 }
 
 function buildGameBoard() {

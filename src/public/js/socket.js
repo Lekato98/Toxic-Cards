@@ -88,6 +88,10 @@ function getCardImageURL(card) {
     return card.suit ? `url(images/cards/${card.suit}/${card.rank}.png)` : DEFAULT_CARD_URL;
 }
 
+function action() {
+    const [action, cardId, otherPlayerId, otherCardId] = prompt('action,cardId,otherPlayerId,otherCardId', '0-22,xxx,xxx,xxx').split(',');
+    emitAction(action, {cardId, otherPlayerId, otherCardId});
+}
 
 gameClient.on(Event.UPDATE_STATE, updateState);
 gameClient.on(Event.STATUS, (payload) => {
