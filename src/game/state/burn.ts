@@ -1,10 +1,12 @@
-import { Action, Game, InvalidAction } from '../game';
+import { Action, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { GameAction } from '../game-action';
 
 export class Burn implements State {
     private static instance: Burn;
 
-    private constructor() {}
+    private constructor() {
+    }
 
     public static getInstance(): Burn {
         if (!this.instance) {
@@ -14,7 +16,7 @@ export class Burn implements State {
         return this.instance;
     }
 
-    public action(context: Game, action: Action, payload?: UserActionPayload): void {
+    public action(context: GameAction, action: Action, payload?: UserActionPayload): void {
         switch (action) {
             case Action.BURN_CARD:
                 return context.burnAction();

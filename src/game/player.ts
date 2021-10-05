@@ -6,14 +6,20 @@ import { Event, GameSocketService } from '../socket/socket';
 export class Player {
     public readonly id: number;
     public handCards: CardHand;
-    public score: number;
     public isBot: boolean;
+    // or if the game start and there is missing players
+    public isOut: boolean;
+    private currentScore: number;
+    // if player reach -100 score or left the game
+    private totalScore: number;
     private userId: number;
 
     constructor(id: number, userId?: number) {
         this.id = id;
-        this.score = 0;
         this.handCards = new CardHand();
+        this.isOut = false;
+        this.resetCurrentScore();
+        this.resetTotalScore();
 
         if (!Utils.isNullOrUndefined(userId)) {
             this.markAsUser(userId);
@@ -30,7 +36,7 @@ export class Player {
         return this.handCards.getCard(cardId);
     }
 
-    public emitTwoCards(): void {
+    public showTwoHandCards(): void {
         const firstCard = 0;
         const secondCard = 1;
         const cards = [
@@ -56,16 +62,58 @@ export class Player {
         this.isBot = false;
     }
 
+    public getUserId(): number {
+        return this.userId;
+    }
+
+    public markAsOut(): void {
+        this.isOut = true;
+    }
+
     public clearHand(): void {
         this.handCards.clear();
     }
 
-    public getState(): any {
+    public resetCurrentScore(): void {
+        this.currentScore = 0;
+    }
+
+    public resetTotalScore(): void {
+        this.totalScore = 0;
+    }
+
+    public getCurrentScore(): number {
+        return this.handCards.getWeightSum();
+    }
+
+    public getTotalScore(): number {
+        return this.totalScore;
+    }
+
+    public updateTotalScore(isPositive: boolean = true, nTimes: number = 1): void {
+        this.totalScore += nTimes * (isPositive ? this.getCurrentScore() : -this.getCurrentScore());
+        this.currentScore = 0;
+    }
+
+    public hasCard(cardId: string): boolean {
+        return this.handCards.contains(cardId);
+    }
+
+    public reset(): void {
+        this.resetTotalScore();
+        this.resetCurrentScore();
+        this.clearHand();
+        this.isOut = false;
+    }
+
+    public getState() {
         return {
             id: this.id,
             userId: this.userId,
             handCards: this.handCards.getState(),
             isBot: this.isBot,
+            isOut: this.isOut,
+            score: this.totalScore,
         };
     }
 }

@@ -17,10 +17,10 @@ export enum CardRank {
     EIGHT = 8,
     NINE = 9,
     TEN = 10,
-    JACK = 'J',
-    QUEEN = 'Q',
-    KING = 'K',
-    ACE = 'A',
+    JACK = 11,
+    QUEEN = 12,
+    KING = 13,
+    ACE = 1,
 }
 
 type CardWeight = number;
@@ -71,7 +71,7 @@ export abstract class CardUtil {
 
         // get key of rank
         // @todo find better solution
-        const rankName: CardWeight = CardRank[rank];
+        const rankName: string = CardRank[rank];
         return CardUtil.CARD_WEIGHT[rankName];
     }
 
@@ -149,7 +149,8 @@ export class Card {
     public suit: CardSuit;
     public rank: CardRank;
     public weight: CardWeight;
-    private used: boolean;
+    private isFaceUp: boolean;
+    private used: boolean; // @todo isUsed instead
     private ability: CardAbility;
 
     // @todo maybe isUsed in creation should be false always
@@ -157,6 +158,7 @@ export class Card {
         this.suit = suit;
         this.rank = rank;
         this.used = used;
+        this.isFaceUp = false;
 
         this.id = CardUtil.generateRandomId();
         this.weight = CardUtil.getWeightBySuitAndRank(suit, rank);
@@ -179,7 +181,7 @@ export class Card {
         this.used = true;
     }
 
-    public isUsed() {
+    public isUsed(): boolean {
         return this.used;
     }
 
@@ -200,17 +202,21 @@ export class Card {
         this.weight = card.weight;
     }
 
-    public getState(): any {
+    public flip(): void {
+        this.isFaceUp = !this.isFaceUp;
+    }
+
+    public getState() {
         return {
             id: this.id,
         };
     }
 
-    public toShow(): any {
+    public toShow() {
         return {
+            id: this.id,
             suit: this.suit,
             rank: this.rank,
-            weight: this.weight,
         };
     }
 }

@@ -1,4 +1,5 @@
-import { Action, Game } from '../game';
+import { Action } from '../game';
+import { GameAction } from '../game-action';
 
 export interface UserActionPayload {
     userId: number;
@@ -9,5 +10,5 @@ export interface UserActionPayload {
 }
 
 export interface State {
-    action(context: Game, action: Action, payload?: UserActionPayload): void;
+    action(context: GameAction, action: Action, payload?: UserActionPayload): void;
 }

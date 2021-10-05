@@ -6,8 +6,7 @@ export abstract class DeckUtil {
         const deckOfCards: Array<Card> = new Array<Card>();
         for (const suit of CardUtil.CARD_SUITS) {
             for (const rank of CardUtil.CARD_RANKS) {
-                const newCard = new Card(suit, rank);
-                deckOfCards.push(newCard);
+                deckOfCards.push(new Card(suit, rank));
             }
         }
 
@@ -17,26 +16,28 @@ export abstract class DeckUtil {
 
 export class Deck {
     private readonly cards: Array<Card>;
-    private readonly numberOfDecks: number;
-    private readonly MAX_NUMBER_OF_DECKS = 3;
+    private readonly deckSize: number;
     private readonly MIN_NUMBER_OF_DECKS = 1;
+    private readonly MAX_NUMBER_OF_DECKS = 4;
 
-    constructor(numberOfDecks: number = 1) {
-        if (!this.isValidNumberOfDecks(numberOfDecks)) {
-            throw new Error('Number of decks exceed the limit');
+    constructor(deckSize: number = 1) {
+        if (!this.isValidDeckSize(deckSize)) {
+            throw new Error(`Deck size should be between(${ this.MIN_NUMBER_OF_DECKS }, ${ this.MAX_NUMBER_OF_DECKS })`);
         }
 
         this.cards = new Array<Card>();
-        this.numberOfDecks = numberOfDecks;
+        this.deckSize = deckSize;
         this.reset();
     }
 
     public reset(): void {
-        const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.numberOfDecks);
-        this.cards.splice(0, this.getSize());
-        while (newSetOfCards.length) {
-            this.cards.push(newSetOfCards.pop());
-        }
+        const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.deckSize);
+        this.clear();
+        this.cards.push(...newSetOfCards);
+    }
+
+    public clear(): void {
+        this.cards.splice(0, this.cards.length);
     }
 
     /**
@@ -72,8 +73,8 @@ export class Deck {
         return this.cards.pop();
     }
 
-    public isValidNumberOfDecks(numberOfDecks: number): boolean {
-        return  this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
+    public isValidDeckSize(numberOfDecks: number): boolean {
+        return this.MIN_NUMBER_OF_DECKS <= numberOfDecks && numberOfDecks <= this.MAX_NUMBER_OF_DECKS;
     }
 
     public isEmpty(): boolean {
