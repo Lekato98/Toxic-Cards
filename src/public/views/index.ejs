@@ -4,71 +4,81 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdn.socket.io/4.2.0/socket.io.min.js"
+            integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
+            crossorigin="anonymous"></script>
+
+    <title>Toxic Cards</title>
+
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="main-container">
-        <div class="btn-container">
-            <button class="menu-btn">Create Game</button>
-            <button class="menu-btn">Join Game</button>
-            <!-- <button class="menu-btn action-btn">ACTION</button> -->
-            <button class="menu-btn">Start Game</button>
-            <button class="menu-btn">Join Queue</button>
+<div class="main-container">
+    <div class="btn-container">
+        <button id="create-game" class="menu-btn" onclick="createGame()">Create Game</button>
+        <button id="join-game" class="menu-btn" onclick="joinGame()">Join Game</button>
+        <!-- <button class="menu-btn action-btn">ACTION</button> -->
+        <button id="start-game" class="menu-btn" onclick="startGame()">Start Game</button>
+        <button id="join-queue" class="menu-btn" onclick="joinQueue()">Join Queue</button>
+    </div>
+    <!-- End of Menu Buttons -->
+    <div class="board-container">
+        <div class="layer-container upper-container">
+            <div class="player">
+                <div class="card"><span style="background-color: aliceblue;">1</span></div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
         </div>
-        <!-- End of Menu Buttons -->
-        <div class="board-container">
-            <div class="layer-container upper-container">
-                <div class="player">
-                    <div class="card"><span style="background-color: aliceblue;">1</span></div>
-                    <div class="card">2</div>
-                    <div class="card">3</div>
-                    <div class="card">4</div>
-                    <div class="card">5</div>
-                    <div class="card">6</div>
-                    <div class="card">7</div>
-                    <div class="card">8</div>
-                </div>
+        <div class="layer-container middle-container">
+            <div class="lalo player rotated-90-deg horizontal-player">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
             </div>
-            <div class="layer-container middle-container">
-                <div class="lalo player rotated-90-deg horizontal-player">
-                    <div class="card">1</div>
-                    <div class="card">2</div>
-                    <div class="card">3</div>
-                    <div class="card">4</div>
-                    <div class="card">5</div>
-                    <div class="card">6</div>
-                    <div class="card">7</div>
-                    <div class="card">8</div>
-                </div>
-                <div class="deck">
-                    <div class="card burnt-card">1</div>
-                    <div class="card">2</div>
-                </div>
-                <div  class="lalo player rotated-270-deg horizontal-player">
-                    <div class="card">1</div>
-                    <div class="card">2</div>
-                    <div class="card">3</div>
-                    <div class="card">4</div>
-                    <div class="card">5</div>
-                    <div class="card">6</div>
-                    <div class="card">7</div>
-                    <div class="card">8</div>
-                </div>
+            <div class="deck">
+                <div class="card burnt-card">1</div>
+                <div class="card">2</div>
             </div>
-            <div class="layer-container bottom-container">
-                <div class="player main-player-POV">
-                    <div class="card">1</div>
-                    <div class="card">2</div>
-                    <div class="card">3</div>
-                    <div class="card">4</div>
-                    <div class="card">5</div>
-                    <div class="card">6</div>
-                    <div class="card">7</div>
-                    <div class="card">8</div>
-                </div>
+            <div class="lalo player rotated-270-deg horizontal-player">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
+        </div>
+        <div class="layer-container bottom-container">
+            <div class="player main-player-POV">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
             </div>
         </div>
     </div>
+</div>
+
+<script>const ENDPOINT = '<%= DYNAMIC_ENDPOINT; %>';</script>
+<script src="js/index.js"></script>
+<script src="js/socket.js"></script>
 </body>
 </html>

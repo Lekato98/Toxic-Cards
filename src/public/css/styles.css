@@ -9,22 +9,21 @@
 }
 
 
-
-.main-container{
+.main-container {
     text-align: center;
     margin: 0;
     padding: 0;
 }
 
-.btn-container{
+.btn-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height:110px;
+    height: 110px;
     margin-bottom: 10px;
 }
 
-.menu-btn{
+.menu-btn {
     margin: 10px;
     width: 110px;
     height: 40px;
@@ -42,7 +41,7 @@
     cursor: pointer;
 }
 
-.action-btn{
+.action-btn {
     width: 100px;
     height: 100px;
     border-radius: 100%;
@@ -50,7 +49,7 @@
     transition: font-size 0.25s ease-in;
 }
 
-.action-btn:hover, .action-btn:focus{
+.action-btn:hover, .action-btn:focus {
     border-radius: 100%;
     font-size: 18px;
     font-size: 16px;
@@ -58,48 +57,75 @@
 }
 
 @-webkit-keyframes AnimationName {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
+
 @-moz-keyframes AnimationName {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
+
 @-o-keyframes AnimationName {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
+
 @keyframes AnimationName {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
 
 /* TO DO ABOVE BUTTON HOVER EFFECTs */
 
-.board-container{
+.board-container {
     background-color: aliceblue;
     width: 100%;
-    height:100%;
+    height: 100%;
 }
 
-.layer-container{
+.layer-container {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     width: 100%;
-    background: #1deab5;
-    height:150px;
+    background: gray;
+    height: 150px;
     margin: 10px 0;
     align-items: center;
 }
 
-.player{
+.player {
     border-radius: 8px;
-    flex-basis:200px;
-    height:110px;
+    flex-basis: 200px;
+    height: 120px; /* changed */
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -107,66 +133,61 @@
     background-color: antiquewhite;
 }
 
-.deck{
+.deck {
     flex-basis: 130px;
-    height:60px;
+    height: 60px;
     padding: 5px;
     display: flex;
     justify-content: space-around;
     align-items: center;
     border-radius: 7px;
 }
+
 /* 180 30 */
-.card{
-    margin:4px;
-    width:35px;
-    height:48px;
+.card {
+    margin: 4px;
+    width: 35px;
+    height: 52px; /* changed */
     border-radius: 1px;
     cursor: pointer;
-    background-image: url('./images/poker-cards.jfif');
+    background-image: url('/images/poker-cards.png');
     background-size: cover;
 }
 
-.burnt-card{
+.burnt-card {
     background-image: none;
     background-color: black;
     opacity: 0.3;
 }
 
-.rotated-90-deg{
+.rotated-90-deg {
     transform: rotate(90deg);
 }
 
-.rotated-270-deg{
+.rotated-270-deg {
     transform: rotate(270deg);
 }
 
-.middle-container{
+.middle-container {
     flex-wrap: nowrap;
-    justify-content: space-around;
     height: 250px;
 }
 
-@media (max-width: 400px) { 
-    .deck{
+@media (max-width: 400px) {
+    .deck {
         max-width: 100px;
         max-height: 50px;
         transform: rotate(270deg);
     }
 
-    .player{
+    .player {
         flex-basis: 180px;
-        max-height: 100px;
+        max-height: 120px; /* changed */
     }
 
-    .lalo{
+    .lalo {
         min-width: 200px;
     }
 
-    
-
-
-    
-
     /* minimize everything in size;; CARDS / PLAYERS and DECK */
- }
+}
