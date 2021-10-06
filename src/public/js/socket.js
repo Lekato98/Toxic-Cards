@@ -5,6 +5,7 @@ const createGameBtn = document.querySelector('#create-game');
 const joinGameBtn = document.querySelector('#join-game');
 const joinQueueBtn = document.querySelector('#join-queue');
 const startGameBtn = document.querySelector('#start-game');
+let currentState = '';
 
 const Action = Object.freeze({
     // CREATE_GAME,
@@ -68,13 +69,15 @@ function getPositionWithOffset(startPosition, offset, size) {
 }
 
 function updateState(state) {
+    console.log(state);
     const {
         players,
-        topBurnedCard,
+        topBurnedCards: topBurnedCard,
         passedBy,
         state: stateName,
     } = state ?? {};
     // rerender the whole game board
+    currentState = stateName;
     const myPosition = players.findIndex((player) => player.userId === userId);
     buildUpperContainer(players[getPositionWithOffset(myPosition, 2, players.length)]);
     buildMiddleContainer([
@@ -89,20 +92,27 @@ function getCardImageURL(card) {
 }
 
 function action() {
-    const [action, cardId, otherPlayerId, otherCardId] = prompt('action,cardId,otherPlayerId,otherCardId', '0-22,xxx,xxx,xxx').split(',');
-    emitAction(action, {cardId, otherPlayerId, otherCardId});
+    const [action, cardId, otherPlayerId, otherCardId] = (prompt('action,cardId,otherPlayerId,otherCardId', '0-22,xxx,xxx,xxx') || '').split(',');
+    emitAction(~~action, {cardId, otherPlayerId, otherCardId});
+}
+
+function errorHandler(payload) {
+    alert(JSON.stringify(payload, null, 2));
 }
 
 gameClient.on(Event.UPDATE_STATE, updateState);
+gameClient.on(Event.ERROR, errorHandler);
 gameClient.on(Event.STATUS, (payload) => {
     if (payload.firstCard) {
         setTimeout(() => {
             const {firstCard, secondCard} = payload;
-            document.getElementById(`${firstCard.id}`).style.backgroundImage = getCardImageURL(firstCard);
-            document.getElementById(`${secondCard.id}`).style.backgroundImage = getCardImageURL(secondCard);
+            const firstCardDiv = document.getElementById(`${firstCard.id}`);
+            const secondCardDiv = document.getElementById(`${secondCard.id}`);
+            firstCardDiv.style.backgroundImage = getCardImageURL(firstCard);
+            secondCardDiv.style.backgroundImage = getCardImageURL(secondCard);
             setTimeout(() => {
-                document.getElementById(`${firstCard.id}`).style.backgroundImage = DEFAULT_CARD_URL;
-                document.getElementById(`${secondCard.id}`).style.backgroundImage = DEFAULT_CARD_URL;
+                firstCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
+                secondCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
             }, 5000);
         }, 1000);
     } else {

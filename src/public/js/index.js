@@ -21,7 +21,7 @@ function buildMiddleContainer([leftPlayer, rightPlayer] = [], topBurnedCard) {
     rightPlayerDiv.classList.add('player', 'rotated-90-deg', 'horizontal-player');
 
     buildPlayer(leftPlayerDiv, leftPlayer);
-    buildDeck(deckDiv);
+    buildDeck(deckDiv, topBurnedCard);
     buildPlayer(rightPlayerDiv, rightPlayer);
 
     middleContainer.append(leftPlayerDiv);
@@ -39,14 +39,65 @@ function buildBottomContainer(player) {
 
 function buildPlayer(playerDiv, player) {
     const cards = player?.handCards?.cards ?? [];
+    const isMine = player?.userId === userId;
     playerDiv.id = player?.id;
 
     cards.forEach((card) => {
         const cardDiv = document.createElement('div');
+        card.isMine = isMine;
+        card.playerId = player.id;
         cardDiv.classList.add('card');
         buildCard(cardDiv, card);
         playerDiv.append(cardDiv);
+        cardEvent(cardDiv, card);
     });
+}
+
+function burnOneHandCardAction(card) {
+    if (card.isMine) {
+        emitAction(Action.BURN_ONE_HAND_CARD, {cardId: card?.id});
+    }
+}
+
+function exchangePickWithHand(card) {
+    if (card.isMine) {
+        emitAction(Action.EXCHANGE_PICK_WITH_HAND, {cardId: card?.id});
+    }
+}
+
+function showOneHandCard(card) {
+    if (card.isMine) {
+        emitAction(Action.SHOW_ONE_HAND_CARD, {cardId: card?.id});
+    }
+}
+
+function showOneOtherHandCard(card) {
+    if (!card.isMine) {
+        emitAction(Action.SHOW_ONE_OTHER_HAND_CARD, {otherPlayerId: card.playerId, otherCardId: card?.id});
+    }
+}
+
+function cardEvent(cardDiv, card) {
+    switch (currentState) {
+        case 'PickBurn':
+            cardDiv.onclick = () => burnOneHandCardAction(card);
+            break;
+
+        case 'PilePicked':
+        case 'BurnedPicked':
+            cardDiv.onclick = () => exchangePickWithHand(card);
+            break;
+
+        case 'ShowOneHandCard':
+            cardDiv.onclick = () => showOneHandCard(card);
+            break;
+
+        case 'ShowOneOtherHandCard':
+            cardDiv.onclick = () => showOneOtherHandCard(card);
+            break;
+
+        case 'ExchangeHandWithOther':
+    }
 }
 
 function buildCard(cardDiv, card) {
@@ -70,6 +121,11 @@ function buildDeck(deckDiv, topBurnedCard) {
     deckDiv.append(topPileCardDiv);
 
     buildCard(topBurnedCardDiv, topBurnedCard);
+    if (topBurnedCard?.id) {
+        topBurnedCardDiv.classList.remove('burnt-card');
+    } else {
+        topBurnedCardDiv.classList.add('burnt-card');
+    }
 }
 
 function buildGameBoard() {

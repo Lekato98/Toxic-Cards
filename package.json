@@ -1,8 +1,8 @@
 {
-  "name": "server",
+  "name": "toxic-cards",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "app.ts",
   "scripts": {
     "start": "ts-node src/app.ts",
     "start:dev": "nodemon src/app.ts",
@@ -12,7 +12,7 @@
     "test:watch": "jest --watch",
     "clean": "rimraf build/"
   },
-  "keywords": [],
+  "keywords": ["playing cards", "games", "cards", "poker", "multiplayer", "socket"],
   "author": "",
   "license": "ISC",
   "dependencies": {

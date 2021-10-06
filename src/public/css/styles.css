@@ -152,6 +152,7 @@
     cursor: pointer;
     background-image: url('/images/poker-cards.png');
     background-size: cover;
+    background-position: center;
 }
 
 .burnt-card {
