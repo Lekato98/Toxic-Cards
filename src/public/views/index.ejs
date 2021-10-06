@@ -18,15 +18,16 @@
     <div class="btn-container">
         <button id="create-game" class="menu-btn" onclick="createGame()">Create Game</button>
         <button id="join-game" class="menu-btn" onclick="joinGame()">Join Game</button>
-        <button id="action" class="menu-btn action-btn" onclick="action()">ACTION</button>
+        <!-- <button id="action" class="menu-btn action-btn" onclick="action()">ACTION</button> -->
         <button id="start-game" class="menu-btn" onclick="startGame()">Start Game</button>
         <button id="join-queue" class="menu-btn" onclick="joinQueue()">Join Queue</button>
     </div>
     <!-- End of Menu Buttons -->
     <div class="board-container">
         <div class="layer-container upper-container">
+   
             <div class="player">
-                <div class="card"><span style="background-color: aliceblue;">1</span></div>
+                <div class="card">1</div>
                 <div class="card">2</div>
                 <div class="card">3</div>
                 <div class="card">4</div>
@@ -63,7 +64,8 @@
             </div>
         </div>
         <div class="layer-container bottom-container">
-            <div class="player main-player-POV">
+            <button class="player-btn">SWAP</button>
+            <div class="current-player player main-player-POV">
                 <div class="card">1</div>
                 <div class="card">2</div>
                 <div class="card">3</div>
@@ -73,6 +75,7 @@
                 <div class="card">7</div>
                 <div class="card">8</div>
             </div>
+            <button class="player-btn">PASS</button>
         </div>
     </div>
 </div>

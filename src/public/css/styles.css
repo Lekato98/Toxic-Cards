@@ -104,7 +104,6 @@
     }
 }
 
-/* TO DO ABOVE BUTTON HOVER EFFECTs */
 
 .board-container {
     background-color: aliceblue;
@@ -124,13 +123,37 @@
 .player {
     border-radius: 8px;
     flex-basis: 200px;
-    height: 120px; /* changed */
+    height: 120px;
     display: flex;
     justify-content: space-around;
     align-items: center;
     flex-wrap: wrap;
-    background-color: cyan;
+    background-color: rgb(1, 39, 1);
+    /* background: transparent; */
 }
+
+/* player effects */
+.current-player{
+    outline: 2px turquoise solid;
+    box-shadow: 5px 5px 10px 0px #118365;
+    -webkit-box-shadow: 5px 5px 10px 0px #118365;
+    -moz-box-shadow: 5px 5px 10px 0px #118365;
+}
+
+.player-pass{
+    outline: 2px red solid;
+    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+}
+
+.selected-card{
+    outline: 2px solid red;
+    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+}
+/* ############### */
 
 .deck {
     flex-basis: 90px;
@@ -142,12 +165,11 @@
     border-radius: 7px;
 }
 
-/* 180 30 */
 .card {
     margin: 4px;
     width: 36px;
     height: 52px;
-    border-radius: 1px;
+    border-radius: 2px;
     cursor: pointer;
     background-image: url('/images/poker-cards.png');
     background-size: cover;
@@ -172,6 +194,29 @@
     height: 250px;
 }
 
+.player-btn{
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+    border: none;
+    color: #1deab5;
+    font-size: 20px;
+    margin: 20px;
+}
+
+.player-score p{
+    background: red;
+}
+
+.player-btn:hover, .player-btn:focus{
+    
+    outline: 3px black solid;
+}
+
+.bottom-container{
+    justify-content: center;
+}
+
 @media (max-width: 444px) {
     .player {
         flex-basis: 180px;
@@ -183,12 +228,53 @@
     .horizontal-player{
         margin: -20px;
     }
-    
+
     .card{
         margin: 3px;
     }
 }
 
-/* fixed until 345px */
+/* updated */
+@media (max-width: 344px) {
+    .player {
+        flex-basis: 140px;
+        max-height: 96px;
+        justify-content: center;
+        flex-wrap: wrap;
+    } 
+
+    .horizontal-player{
+        margin: -20px;
+    }
+    
+    .card{
+        margin: 2px;
+        width: 28px;
+        height: 44px;
+    }
+
+    .deck {
+        flex-basis: 68px;
+        height: 50px;
+        padding: 2px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-radius: 5px;
+    }
+
+} 
+
+@media (max-width: 450px) {
+    .player-btn{
+        width: 50px;
+        height: 50px;
+        border-radius: 100%;
+        border: none;
+        color: #1deab5;
+        font-size: 16px;
+        margin: 14px;
+    }
+}
 
 
