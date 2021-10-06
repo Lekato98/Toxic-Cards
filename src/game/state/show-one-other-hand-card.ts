@@ -1,5 +1,6 @@
-import { Action, Game, InvalidAction } from '../game';
+import { Action, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { GameAction } from '../game-action';
 
 interface ShowOneOtherHandCardActionPayload extends UserActionPayload {
     otherPlayerId;
@@ -20,7 +21,7 @@ export class ShowOneOtherHandCard implements State {
         return this.instance;
     }
 
-    public action(context: Game, action: Action, payload?: ShowOneOtherHandCardActionPayload): void {
+    public action(context: GameAction, action: Action, payload?: ShowOneOtherHandCardActionPayload): void {
         switch (action) {
             case Action.SHOW_ONE_OTHER_HAND_CARD:
                 return context.showOneOtherHandCardAction(payload.userId, payload.otherPlayerId, payload.otherCardId);

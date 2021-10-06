@@ -7,13 +7,6 @@ export class CardHand {
         this.cards = new Array<Card>();
     }
 
-    /**
-     * getSize
-     */
-    public getSize(): number {
-        return this.cards.length;
-    }
-
     public add(card: Card): void {
         card.markAsUsed();
         this.cards.push(card);
@@ -24,15 +17,19 @@ export class CardHand {
         this.cards.splice(index, 1);
     }
 
+    public getSize(): number {
+        return this.cards.length;
+    }
+
     public getCard(cardId: string): Card {
         return this.cards.find((_card: Card) => _card.id === cardId);
     }
 
-    public contains(card: Card): boolean {
-        return this.cards.includes(card);
+    public clear(): void {
+        this.cards.splice(0, this.getSize());
     }
 
-    public getCardByOrder(order: number) {
+    public getCardByOrder(order: number): Card {
         if (!this.isValidOrder(order)) {
             throw new Error('Invalid card order exceed the limit');
         }
@@ -40,14 +37,20 @@ export class CardHand {
         return this.cards[order];
     }
 
-    public clear(): void {
-        this.cards.splice(0, this.getSize());
-    }
-
-    public getState(): any {
+    public getState() {
         return {
             cards: this.cards.map((_card) => _card.getState()),
         };
+    }
+
+    public getWeightSum(): number {
+        return this.cards.reduce((reducer: number, card: Card) => reducer + card.weight, 0);
+    }
+
+    public contains(cardId: string): boolean;
+    public contains(card: Card): boolean;
+    public contains(param: Card | string): boolean {
+        return param instanceof Card ? this.cards.includes(param) : this.cards.some((card) => card.id === param);
     }
 
     public isValidOrder(order: number): boolean {
@@ -56,9 +59,5 @@ export class CardHand {
 
     public isEmpty(): boolean {
         return this.getSize() === 0;
-    }
-
-    public getWeightSum(): number {
-        return this.cards.reduce((reducer: number, card: Card) => reducer + card.weight, 0);
     }
 }

@@ -1,5 +1,6 @@
-import { Action, Game, InvalidAction } from '../game';
+import { Action, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
+import { GameAction } from '../game-action';
 
 interface PickBurnPayload extends UserActionPayload {
     cardId: string;
@@ -19,7 +20,7 @@ export class PickBurn implements State {
         return this.instance;
     }
 
-    public action(context: Game, action: Action, payload?: PickBurnPayload): void {
+    public action(context: GameAction, action: Action, payload?: PickBurnPayload): void {
         switch (action) {
             case Action.PICK_CARD_FROM_PILE:
                 return context.pickCardFromPileAction();

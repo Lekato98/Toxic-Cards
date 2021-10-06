@@ -36,7 +36,7 @@ export class Player {
         return this.handCards.getCard(cardId);
     }
 
-    public emitTwoCards(): void {
+    public showTwoHandCards(): void {
         const firstCard = 0;
         const secondCard = 1;
         const cards = [
@@ -93,6 +93,10 @@ export class Player {
     public updateTotalScore(isPositive: boolean = true, nTimes: number = 1): void {
         this.totalScore += nTimes * (isPositive ? this.getCurrentScore() : -this.getCurrentScore());
         this.currentScore = 0;
+    }
+
+    public hasCard(cardId: string): boolean {
+        return this.handCards.contains(cardId);
     }
 
     public reset(): void {

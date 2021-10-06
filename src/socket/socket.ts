@@ -4,6 +4,7 @@ import { Utils } from '../game/utils';
 import { Action, Game } from '../game/game';
 import { BeginOfGame } from '../game/state/begin-of-game';
 import * as chalk from 'chalk';
+import { GameConfig } from '../game/game-config';
 
 export enum Event {
     CONNECTION = 'connection',
@@ -31,7 +32,7 @@ export abstract class GameSocketService {
     private static namespace: Namespace;
     private static userClients: Map<number, Socket>;
     private static games: Map<number, Game>;
-    private static userGames: Map<number, Game>; // @todo maybe set gameId instead of ref obj
+    private static userGames: Map<number, Game>;
 
     public static init(server: Server): void {
         GameSocketService.namespace = server.of(NamespacePrefix.GAME);
@@ -43,10 +44,14 @@ export abstract class GameSocketService {
     }
 
     public static authMiddleware(client: Socket, next: NextFunction): void {
-        const token = client.handshake.auth;
-        const query = client.handshake.query;
+        const {
+            auth: token,
+            query,
+            headers,
+        } = client.handshake;
         console.log(`Authorizing token: `, token);
         console.log(`Authorizing query: `, query);
+        console.log(`Authorizing headers: `, headers);
         const userId = ~~(token.userId ?? query.userId);
         // @todo use jwt later
         if (Utils.isNullOrUndefined(userId)) {
@@ -111,8 +116,8 @@ export abstract class GameSocketService {
                     return GameSocketService.handleError(client, new Error('User is already in game'));
                 }
 
-                const {numberOfPlayers} = payload;
-                const game = new Game(numberOfPlayers, BeginOfGame.getInstance(), userId);
+                const gameConfig = new GameConfig(payload);
+                const game = new Game(gameConfig, BeginOfGame.getInstance(), userId);
                 GameSocketService.games.set(game.id, game);
                 GameSocketService.registerClient(client, game);
             } catch (e) {
@@ -136,7 +141,7 @@ export abstract class GameSocketService {
                 }
 
                 const game = GameSocketService.games.get(gameId);
-                game.action(Action.JOIN_AS_PLAYER, {userId, playerId});
+                game.doAction(Action.JOIN_AS_PLAYER, {userId, playerId});
                 GameSocketService.registerClient(client, game);
             } catch (e) {
                 GameSocketService.handleError(client, e);
@@ -156,7 +161,7 @@ export abstract class GameSocketService {
                 });
 
                 if (game) {
-                    game.action(Action.JOIN_AS_PLAYER, {userId});
+                    game.doAction(Action.JOIN_AS_PLAYER, {userId});
                     return GameSocketService.registerClient(client, game);
                 }
 
@@ -181,7 +186,7 @@ export abstract class GameSocketService {
                 const {action, ...actionPayload} = payload;
                 const game = GameSocketService.userGames.get(userId);
                 actionPayload.userId = userId;
-                game.action(payload.action, actionPayload);
+                game.doAction(payload.action, actionPayload);
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
@@ -267,11 +272,11 @@ export abstract class GameSocketService {
         const {userId} = client.data;
         const gameId = String(game.id);
         client.leave(gameId);
-        game.action(Action.LEAVE, {userId});
+        game.doAction(Action.LEAVE, {userId});
         GameSocketService.userGames.delete(userId);
-        GameSocketService.deleteEmptyGame(game);
         GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
         GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just left the game!`}); // broadcast message to room members
+        GameSocketService.deleteEmptyGame(game);
     }
 
     private static handleError(client: Socket, err: Error): void {
@@ -282,6 +287,7 @@ export abstract class GameSocketService {
     private static deleteEmptyGame(game: Game): void {
         if (!game.numberOfUserPlayers) {
             GameSocketService.games.delete(game.id);
+            console.log(`Game#${game.id} has be deleted successfully`);
         }
     }
 }
