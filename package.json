@@ -12,7 +12,14 @@
     "test:watch": "jest --watch",
     "clean": "rimraf build/"
   },
-  "keywords": ["playing cards", "games", "cards", "poker", "multiplayer", "socket"],
+  "keywords": [
+    "playing cards",
+    "games",
+    "cards",
+    "poker",
+    "multiplayer",
+    "socket"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

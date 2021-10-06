@@ -172,7 +172,7 @@
     height: 250px;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 444px) {
     .player {
         flex-basis: 180px;
         max-height: 120px;
@@ -189,5 +189,6 @@
     }
 }
 
-/* 350px + */
+/* fixed until 345px */
+
 
