@@ -1,139 +1,280 @@
-body {
+@import url('https://fonts.googleapis.com/css2?family=Cuprum&display=swap');
+
+* {
+    background-color: #242424;
+    font-family: 'Cuprum', sans-serif;
+    font-weight: 400;
+    padding: 0;
+    margin: 0;
+}
+
+
+.main-container {
     text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
-.container {
-    position: relative;
+.btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 110px;
+    margin-bottom: 10px;
 }
 
-.player {
-    display: inline-block;
-    width: 200px;
-    height: 285px;
-}
-
-.p1 {
-    position: absolute;
-    right: 100px;
-    top: 250px
-}
-
-.p2 {
-    position: absolute;
-    left: 100px;
-    top: 250px
-}
-
-.p3 {
-    position: absolute;
-    right: 700px;
-    top: 25px;
-}
-
-.p4 {
-    position: absolute;
-    right: 700px;
-    top: 500px;
-}
-
-span {
-    display: block;
-    color: white;
-    padding: 10px;
-}
-
-.card {
-    display: inline-block;
-    width: 65px;
-    height: 95px;
-    border-radius: 5px;
-    margin: 3px;
-
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    z-index: 333;
+.menu-btn {
+    margin: 10px;
+    width: 110px;
+    height: 40px;
+    background: linear-gradient(270deg, #1deab5, #d8f0ea);
+    background-size: 400% 400%;
+    -webkit-animation: AnimationName 8s ease infinite;
+    -moz-animation: AnimationName 8s ease infinite;
+    -o-animation: AnimationName 8s ease infinite;
+    animation: AnimationName 8s ease infinite;
+    border: none;
+    border-radius: 20px;
+    color: #242424;
+    font-weight: bold;
+    font-size: 16px;
     cursor: pointer;
 }
 
-.deck {
-    position: absolute;
-    top: 325px;
-    left: 620px;
-    width: 200px;
+.action-btn {
+    width: 100px;
     height: 100px;
-    background-color: lightgray;
-    padding-top: 10px;
+    border-radius: 100%;
+    font-size: 24px;
+    transition: font-size 0.25s ease-in;
 }
 
-.selected {
-    border: 2px solid #df0000;
+.action-btn:hover, .action-btn:focus {
+    border-radius: 100%;
+    font-size: 18px;
+    font-size: 16px;
     outline: none;
-    box-shadow: 0 0 10px #df0000;
 }
 
-.score {
-    color: white;
-    background-color: #555555;
-    margin: 10px;
+@-webkit-keyframes AnimationName {
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
 
-.picked-deck {
-    position: absolute;
-    top: 575px;
-    right: 250px;
-    width: 200px;
-    height: 100px;
+@-moz-keyframes AnimationName {
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
 }
 
-body {
+@-o-keyframes AnimationName {
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
+}
+
+@keyframes AnimationName {
+    0% {
+        background-position: 0% 50%
+    }
+    50% {
+        background-position: 100% 50%
+    }
+    100% {
+        background-position: 0% 50%
+    }
+}
+
+
+.board-container {
+    background-color: aliceblue;
+    width: 100%;
     height: 100%;
-    background-color: #333;
 }
 
-#countdown {
-    position: relative;
-    height: 40px;
-    width: 40px;
-    text-align: center;
+.layer-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    background: gray;
+    height: 150px;    
+    align-items: center;
 }
 
-#countdown-number {
-    color: white;
-    display: inline-block;
-    line-height: 40px;
+.player {
+    border-radius: 8px;
+    flex-basis: 200px;
+    height: 120px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: rgb(1, 39, 1);
+    /* background: transparent; */
 }
 
-svg {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 40px;
-    transform: rotateY(-180deg) rotateZ(-90deg);
+/* player effects */
+.current-player{
+    outline: 2px turquoise solid;
+    box-shadow: 5px 5px 10px 0px #118365;
+    -webkit-box-shadow: 5px 5px 10px 0px #118365;
+    -moz-box-shadow: 5px 5px 10px 0px #118365;
 }
 
-svg circle {
-    stroke-dasharray: 113px;
-    stroke-dashoffset: 0px;
-    stroke-linecap: round;
-    stroke-width: 2px;
-    stroke: white;
-    fill: none;
-    animation: countdown 10s linear infinite forwards;
+.player-pass{
+    outline: 2px red solid;
+    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
 }
 
-@keyframes countdown {
-    from {
-        stroke-dashoffset: 0px;
+.selected-card{
+    outline: 2px solid red;
+    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+}
+/* ############### */
+
+.deck {
+    flex-basis: 90px;
+    height: 60px;
+    padding: 2px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 7px;
+}
+
+.card {
+    margin: 4px;
+    width: 36px;
+    height: 52px;
+    border-radius: 2px;
+    cursor: pointer;
+    background-image: url('/images/poker-cards.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.burnt-card {
+    background-image: none;
+    background-color: black;
+    opacity: 0.3;
+}
+
+.rotated-90-deg {
+    transform: rotate(90deg);
+}
+
+.rotated-270-deg {
+    transform: rotate(270deg);
+}
+
+.middle-container {
+    height: 250px;
+}
+
+.player-btn{
+    width: 80px;
+    height: 80px;
+    border-radius: 100%;
+    border: none;
+    color: #1deab5;
+    font-size: 20px;
+    margin: 20px;
+}
+
+.player-score p{
+    background: red;
+}
+
+.player-btn:hover, .player-btn:focus{
+    
+    outline: 3px black solid;
+}
+
+.bottom-container{
+    justify-content: center;
+}
+
+@media (max-width: 444px) {
+    .player {
+        flex-basis: 180px;
+        max-height: 120px;
+        justify-content: center;
+        flex-wrap: wrap;
+    } 
+
+    .horizontal-player{
+        margin: -20px;
     }
-    to {
-        stroke-dashoffset: 113px;
+
+    .card{
+        margin: 3px;
     }
 }
 
-.lalo {
-    position: fixed;
-    top: 0;
-    right: 5px;
+/* updated */
+@media (max-width: 344px) {
+    .player {
+        flex-basis: 140px;
+        max-height: 96px;
+        justify-content: center;
+        flex-wrap: wrap;
+    } 
+
+    .horizontal-player{
+        margin: -20px;
+    }
+    
+    .card{
+        margin: 2px;
+        width: 28px;
+        height: 44px;
+    }
+
+    .deck {
+        flex-basis: 68px;
+        height: 50px;
+        padding: 2px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-radius: 5px;
+    }
+
+} 
+
+@media (max-width: 450px) {
+    .player-btn{
+        width: 50px;
+        height: 50px;
+        border-radius: 100%;
+        border: none;
+        color: #1deab5;
+        font-size: 16px;
+        margin: 14px;
+    }
 }
+
+

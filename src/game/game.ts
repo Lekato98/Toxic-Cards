@@ -389,7 +389,7 @@ export class Game {
     }
 
     public isValidPlayerCard(playerId: number, cardId: string): boolean {
-        return this.isValidPlayer(playerId) && !Utils.isNullOrUndefined(this.players[playerId].hasCard(cardId));
+        return this.isValidPlayer(playerId) && this.players[playerId].hasCard(cardId);
     }
 
     public isFull(): boolean {

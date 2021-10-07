@@ -1,106 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.socket.io/4.2.0/socket.io.min.js"
             integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
             crossorigin="anonymous"></script>
+
     <title>Toxic Cards</title>
 
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div class="bg">
-    <button onclick="createGame()">Create game</button>
-    <button onclick="joinGame()">Join game</button>
-    <button onclick="joinQueue()">Join queue</button>
-    <button onclick="leaveGame()">Leave game</button>
-    <button onclick="startGame()">Start Game</button>
-    <button onclick="passAction()">Pass</button>
-    <button onclick="swapAction()">Swap</button>
-    <button onclick="doAction()">Action</button>
-    <div id="ping" style="color:green;position:fixed;top:0;left:0;margin: 5px">0ms</div>
-    <div id="state" style="color: white">Game State</div>
-    <div class="lalo">
-        <div id="countdown">
-            <div id="countdown-number"></div>
-            <svg>
-                <circle r="18" cx="20" cy="20"></circle>
-            </svg>
+<div class="main-container">
+    <div class="btn-container">
+        <button id="create-game" class="menu-btn" onclick="createGame()">Create Game</button>
+        <button id="join-game" class="menu-btn" onclick="joinGame()">Join Game</button>
+        <!-- <button id="action" class="menu-btn action-btn" onclick="action()">ACTION</button> -->
+        <button id="start-game" class="menu-btn" onclick="startGame()">Start Game</button>
+        <button id="join-queue" class="menu-btn" onclick="joinQueue()">Join Queue</button>
+    </div>
+    <!-- End of Menu Buttons -->
+    <div class="board-container">
+        <div class="layer-container upper-container">
+   
+            <div class="player">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
+        </div>
+        <div class="layer-container middle-container">
+            <div class="middle-content player rotated-90-deg horizontal-player">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
+            <div class="middle-content deck">
+                <div class="card burnt-card">1</div>
+                <div class="card">2</div>
+            </div>
+            <div class="middle-content player rotated-270-deg horizontal-player">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
+        </div>
+        <div class="layer-container bottom-container">
+            <button class="player-btn">SWAP</button>
+            <div class="current-player player main-player-POV">
+                <div class="card">1</div>
+                <div class="card">2</div>
+                <div class="card">3</div>
+                <div class="card">4</div>
+                <div class="card">5</div>
+                <div class="card">6</div>
+                <div class="card">7</div>
+                <div class="card">8</div>
+            </div>
+            <button class="player-btn">PASS</button>
         </div>
     </div>
-    <div class="container">
-        <div class="player p4">
-            <span>4</span>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="score">Score: 0</div>
-        </div>
-
-        <div class="player p1">
-            <span>1</span>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="score">Score: 0</div>
-        </div>
-
-        <div class="player p3">
-            <span>3</span>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="score">Score: 0</div>
-        </div>
-
-        <div class="player p2">
-            <span>User#2: username</span>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="card" style="background-image: url('images/poker-cards.png');display: none;"></div>
-            <div class="score">Score: 0</div>
-        </div>
-
-        <div class="deck">
-            <div id="burned" class="card" style="background-image: url('images/poker-cards.png');"></div>
-            <div id="pile" class="card" style="background-image: url('images/poker-cards.png');"></div>
-        </div>
-
-        <div class="picked-deck">
-            <div id="picked" class="card" style="background-image: url('images/poker-cards.png');"></div>
-        </div>
-    </div>
-
-    <script>
-        const ENDPOINT = '<%=DYNAMIC_ENDPOINT%>';
-    </script>
-    <script src="js/index.js"></script>
-
 </div>
+
+<script>const ENDPOINT = '<%= DYNAMIC_ENDPOINT; %>';</script>
+<script src="js/index.js"></script>
+<script src="js/socket.js"></script>
 </body>
 </html>

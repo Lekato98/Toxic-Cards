@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-dotenv.config();
+dotenv.config({path: path.join(__dirname, '.env')});
 
 export const ioConfig = {
     cors: {

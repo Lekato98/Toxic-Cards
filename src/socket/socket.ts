@@ -274,9 +274,9 @@ export abstract class GameSocketService {
         client.leave(gameId);
         game.doAction(Action.LEAVE, {userId});
         GameSocketService.userGames.delete(userId);
-        GameSocketService.deleteEmptyGame(game);
         GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
         GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just left the game!`}); // broadcast message to room members
+        GameSocketService.deleteEmptyGame(game);
     }
 
     private static handleError(client: Socket, err: Error): void {
@@ -287,6 +287,7 @@ export abstract class GameSocketService {
     private static deleteEmptyGame(game: Game): void {
         if (!game.numberOfUserPlayers) {
             GameSocketService.games.delete(game.id);
+            console.log(`Game#${game.id} has be deleted successfully`);
         }
     }
 }

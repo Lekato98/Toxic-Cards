@@ -15,10 +15,10 @@ export class GameConfig {
 
     constructor(configs: Configs) {
         const {
-            numberOfPlayers,
+            numberOfPlayers = 4,
             deckSize = 1,
             minEliminateScore = -100,
-        } = configs;
+        } = configs ?? {};
 
         if (!this.isValidNumberOfPlayers(numberOfPlayers)) {
             throw new Error(`Number of players should be between(${ this.MIN_NUMBER_OF_PLAYERS }, ${ this.MAX_NUMBER_OF_PLAYERS })`);
