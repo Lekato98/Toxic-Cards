@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cuprum&display=swap');
 
-* {
+body {
     background-color: #242424;
     font-family: 'Cuprum', sans-serif;
     font-weight: 400;
@@ -154,6 +154,11 @@
     -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
 }
 /* ############### */
+.deck-container{
+    background-color: #242424;
+    border-radius: 7px;
+    border: none;
+}
 
 .deck {
     flex-basis: 90px;
@@ -162,7 +167,15 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-radius: 7px;
+}
+
+.pulled-card{
+    display: flex;
+    justify-content: center;
+}
+
+.pulled-card .card{
+    outline: 2px solid red;
 }
 
 .card {
@@ -195,6 +208,7 @@
 }
 
 .player-btn{
+    background-color: #242424;
     width: 80px;
     height: 80px;
     border-radius: 100%;
@@ -204,12 +218,7 @@
     margin: 20px;
 }
 
-.player-score p{
-    background: red;
-}
-
 .player-btn:hover, .player-btn:focus{
-    
     outline: 3px black solid;
 }
 
