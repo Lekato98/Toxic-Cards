@@ -2,6 +2,9 @@ const upperContainer = document.querySelector('.upper-container'); // 1 player
 const middleContainer = document.querySelector('.middle-container'); // 2 players + deck
 const bottomContainer = document.querySelector('.bottom-container'); // 1 player - main-player
 
+let handCard = null;
+let otherHandCard = null;
+
 function buildUpperContainer(player) {
     upperContainer.innerHTML = '';
     const playerDiv = document.createElement('div');
@@ -10,12 +13,14 @@ function buildUpperContainer(player) {
     upperContainer.append(playerDiv);
 }
 
-function buildMiddleContainer([leftPlayer, rightPlayer] = [], topBurnedCard) {
+function buildMiddleContainer([leftPlayer, rightPlayer] = [], topBurnedCard, pickedCard) {
     middleContainer.innerHTML = '';
     const leftPlayerDiv = document.createElement('div');
     const rightPlayerDiv = document.createElement('div');
     const deckDiv = document.createElement('div');
+    const deckContainer = document.createElement('div');
 
+    deckContainer.classList.add('deck-container');
     leftPlayerDiv.classList.add('player', 'rotated-90-deg', 'horizontal-player');
     deckDiv.classList.add('deck');
     rightPlayerDiv.classList.add('player', 'rotated-90-deg', 'horizontal-player');
@@ -24,9 +29,25 @@ function buildMiddleContainer([leftPlayer, rightPlayer] = [], topBurnedCard) {
     buildDeck(deckDiv, topBurnedCard);
     buildPlayer(rightPlayerDiv, rightPlayer);
 
+    deckContainer.append(deckDiv);
     middleContainer.append(leftPlayerDiv);
-    middleContainer.append(deckDiv);
+    middleContainer.append(deckContainer);
     middleContainer.append(rightPlayerDiv);
+
+    if (pickedCard) {
+        const pulledCardDiv = document.createElement('div');
+        const cardDiv = document.createElement('div');
+
+        cardDiv.classList.add('card');
+        pulledCardDiv.classList.add('pulled-card');
+
+        buildCard(cardDiv, pickedCard);
+
+        deckContainer.append(pulledCardDiv);
+        pulledCardDiv.append(cardDiv);
+
+        cardDiv.onclick = () => emitAction(Action.THROW_CARD);
+    }
 }
 
 function buildBottomContainer(player) {
@@ -34,13 +55,35 @@ function buildBottomContainer(player) {
     const mainPlayerDiv = document.createElement('div');
     mainPlayerDiv.classList.add('player', 'main-player-POV');
     buildPlayer(mainPlayerDiv, player);
-    bottomContainer.append(mainPlayerDiv);
+
+    if (player.isTurn) {
+        const passBtn = document.createElement('button');
+        const useBtn = document.createElement('button');
+
+        passBtn.onclick = () => emitAction(Action.PASS);
+
+        passBtn.id = 'pass';
+        passBtn.innerText = 'PASS';
+        useBtn.id = 'use';
+        passBtn.classList.add('player-btn');
+        useBtn.classList.add('player-btn');
+
+        bottomContainer.append(useBtn);
+        bottomContainer.append(mainPlayerDiv);
+        bottomContainer.append(passBtn);
+    } else {
+        bottomContainer.append(mainPlayerDiv);
+    }
 }
 
 function buildPlayer(playerDiv, player) {
     const cards = player?.handCards?.cards ?? [];
     const isMine = player?.userId === userId;
     playerDiv.id = player?.id;
+
+    if (player?.isTurn) {
+        playerDiv.classList.add('current-player');
+    }
 
     cards.forEach((card) => {
         const cardDiv = document.createElement('div');
@@ -77,6 +120,44 @@ function showOneOtherHandCard(card) {
     }
 }
 
+function exchangeHandWithOther(card) {
+    const useBtn = document.querySelector('#use');
+    useBtn.innerText = 'SWAP';
+    if (card.isMine) {
+        handCard = card;
+        const playerDiv = document.getElementById(card.playerId);
+        const cards = Array.from(playerDiv.getElementsByClassName('card'));
+
+        cards.forEach((_card) => {
+            if (_card.id !== card.id) {
+                _card.classList.remove('selected-card');
+            } else {
+                _card.classList.add('selected-card');
+            }
+        });
+    } else {
+        otherHandCard = card;
+        const otherPlayersDiv = Array.from(document.getElementsByClassName('player'));
+        otherPlayersDiv.pop(); // remove current player
+        otherPlayersDiv.forEach((playerDiv) => {
+            const cards = Array.from(playerDiv.getElementsByClassName('card'));
+            cards.forEach((_card) => {
+                if (_card.id !== card.id) {
+                    _card.classList.remove('selected-card');
+                } else {
+                    _card.classList.add('selected-card');
+                }
+            });
+        });
+    }
+
+    useBtn.onclick = () => emitAction(Action.EXCHANGE_HAND_WITH_OTHER, {
+        cardId: handCard.id,
+        otherPlayerId: otherHandCard.playerId,
+        otherCardId: otherHandCard.id,
+    });
+}
+
 function cardEvent(cardDiv, card) {
     switch (currentState) {
         case 'PickBurn':
@@ -97,6 +178,8 @@ function cardEvent(cardDiv, card) {
             break;
 
         case 'ExchangeHandWithOther':
+            cardDiv.onclick = () => exchangeHandWithOther(card);
+            break;
     }
 }
 
