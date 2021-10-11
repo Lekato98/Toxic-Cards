@@ -25,7 +25,7 @@
     <!-- End of Menu Buttons -->
     <div class="board-container">
         <div class="layer-container upper-container">
-   
+
             <div class="player">
                 <div class="card">1</div>
                 <div class="card">2</div>
@@ -48,9 +48,15 @@
                 <div class="card">7</div>
                 <div class="card">8</div>
             </div>
-            <div class="middle-content deck">
-                <div class="card burnt-card">1</div>
-                <div class="card">2</div>
+            <div class="middle-content deck-container">
+                <div class="deck">
+                    <div class="card burnt-card">1</div>
+                    <div class="card">2</div>
+                </div>
+                <div class="pulled-card">
+                    <div class="card"></div>
+                </div>
+
             </div>
             <div class="middle-content player rotated-270-deg horizontal-player">
                 <div class="card">1</div>
@@ -64,7 +70,7 @@
             </div>
         </div>
         <div class="layer-container bottom-container">
-            <button class="player-btn">SWAP</button>
+            <button id="use" class="player-btn">SWAP</button>
             <div class="current-player player main-player-POV">
                 <div class="card">1</div>
                 <div class="card">2</div>
@@ -75,7 +81,7 @@
                 <div class="card">7</div>
                 <div class="card">8</div>
             </div>
-            <button class="player-btn">PASS</button>
+            <button id="pass" class="player-btn">PASS</button>
         </div>
     </div>
 </div>
