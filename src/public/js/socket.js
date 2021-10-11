@@ -6,6 +6,7 @@ const joinGameBtn = document.querySelector('#join-game');
 const joinQueueBtn = document.querySelector('#join-queue');
 const startGameBtn = document.querySelector('#start-game');
 let currentState = '';
+let pickedCard = null;
 
 const Action = Object.freeze({
     // CREATE_GAME,
@@ -74,16 +75,27 @@ function updateState(state) {
         players,
         topBurnedCards: topBurnedCard,
         passedBy,
+        turn,
         state: stateName,
     } = state ?? {};
+    if (stateName !== 'PilePicked' || stateName !== 'BurnPicked') {
+        const [pickedCardDiv] = document.getElementsByClassName('pulled-card');
+        if (pickedCardDiv) {
+            pickedCardDiv.style.display = 'none';
+            pickedCard = null;
+        }
+    }
+
     // rerender the whole game board
     currentState = stateName;
     const myPosition = players.findIndex((player) => player.userId === userId);
+
+    players.forEach((player, index) => player.isTurn = index === turn);
     buildUpperContainer(players[getPositionWithOffset(myPosition, 2, players.length)]);
     buildMiddleContainer([
         players[getPositionWithOffset(myPosition, 3, players.length)],
         players[getPositionWithOffset(myPosition, 1, players.length)],
-    ], topBurnedCard);
+    ], topBurnedCard, pickedCard);
     buildBottomContainer(players[getPositionWithOffset(myPosition, 0, players.length)]);
 }
 
@@ -115,6 +127,8 @@ gameClient.on(Event.STATUS, (payload) => {
                 secondCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
             }, 5000);
         }, 1000);
+    } else if (payload.pickedCard) {
+        pickedCard = payload.pickedCard;
     } else {
         alert(JSON.stringify(payload, null, 2));
     }

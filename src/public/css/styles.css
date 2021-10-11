@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cuprum&display=swap');
 
-* {
+body {
     background-color: #242424;
     font-family: 'Cuprum', sans-serif;
     font-weight: 400;
@@ -116,7 +116,7 @@
     justify-content: space-around;
     width: 100%;
     background: gray;
-    height: 150px;    
+    height: 150px;
     align-items: center;
 }
 
@@ -133,27 +133,33 @@
 }
 
 /* player effects */
-.current-player{
+.current-player {
     outline: 2px turquoise solid;
     box-shadow: 5px 5px 10px 0px #118365;
     -webkit-box-shadow: 5px 5px 10px 0px #118365;
     -moz-box-shadow: 5px 5px 10px 0px #118365;
 }
 
-.player-pass{
+.player-pass {
     outline: 2px red solid;
-    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
-    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
-    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
 }
 
-.selected-card{
+.selected-card {
     outline: 2px solid red;
-    box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
-    -webkit-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
-    -moz-box-shadow: 5px 5px 10px 0px rgba(244,4,4,0.4);
+    box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
+    -webkit-box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
+    -moz-box-shadow: 5px 5px 10px 0px rgba(244, 4, 4, 0.4);
 }
+
 /* ############### */
+.deck-container {
+    background-color: #242424;
+    border-radius: 7px;
+    border: none;
+}
 
 .deck {
     flex-basis: 90px;
@@ -162,7 +168,15 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-radius: 7px;
+}
+
+.pulled-card {
+    display: flex;
+    justify-content: center;
+}
+
+.pulled-card .card {
+    outline: 2px solid red;
 }
 
 .card {
@@ -194,7 +208,8 @@
     height: 250px;
 }
 
-.player-btn{
+.player-btn {
+    background-color: #242424;
     width: 80px;
     height: 80px;
     border-radius: 100%;
@@ -204,16 +219,11 @@
     margin: 20px;
 }
 
-.player-score p{
-    background: red;
-}
-
-.player-btn:hover, .player-btn:focus{
-    
+.player-btn:hover, .player-btn:focus {
     outline: 3px black solid;
 }
 
-.bottom-container{
+.bottom-container {
     justify-content: center;
 }
 
@@ -223,13 +233,13 @@
         max-height: 120px;
         justify-content: center;
         flex-wrap: wrap;
-    } 
+    }
 
-    .horizontal-player{
+    .horizontal-player {
         margin: -20px;
     }
 
-    .card{
+    .card {
         margin: 3px;
     }
 }
@@ -241,13 +251,13 @@
         max-height: 96px;
         justify-content: center;
         flex-wrap: wrap;
-    } 
+    }
 
-    .horizontal-player{
+    .horizontal-player {
         margin: -20px;
     }
-    
-    .card{
+
+    .card {
         margin: 2px;
         width: 28px;
         height: 44px;
@@ -263,16 +273,16 @@
         border-radius: 5px;
     }
 
-} 
+}
 
 @media (max-width: 450px) {
-    .player-btn{
+    .player-btn {
         width: 50px;
         height: 50px;
         border-radius: 100%;
         border: none;
         color: #1deab5;
-        font-size: 16px;
+        font-size: 10px;
         margin: 14px;
     }
 }
