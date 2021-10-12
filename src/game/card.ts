@@ -129,10 +129,6 @@ export abstract class CardUtil {
         return card.rank === CardRank.KING;
     }
 
-    public static generateRandomId(): string {
-        return nanoid(CardUtil.DEFAULT_ID_SIZE);
-    }
-
     public static swap(firstCard: Card, secondCard: Card): void {
         const tempCard = CardUtil.clone(firstCard);
         firstCard.copy(secondCard);
@@ -160,7 +156,6 @@ export class Card {
         this.used = used;
         this.isFaceUp = false;
 
-        this.id = CardUtil.generateRandomId();
         this.weight = CardUtil.getWeightBySuitAndRank(suit, rank);
         this.ability = CardUtil.getAbilityByRank(rank);
     }

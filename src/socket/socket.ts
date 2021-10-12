@@ -287,7 +287,7 @@ export abstract class GameSocketService {
     private static deleteEmptyGame(game: Game): void {
         if (!game.numberOfUserPlayers) {
             GameSocketService.games.delete(game.id);
-            console.log(`Game#${game.id} has be deleted successfully`);
+            console.log(`Game#${ game.id } has be deleted successfully`);
         }
     }
 }

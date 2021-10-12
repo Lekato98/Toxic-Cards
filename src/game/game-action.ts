@@ -99,6 +99,10 @@ export class GameAction {
         }
 
         const player = this.game.getPlayerByUserId(userId);
+        if (player.handCards.isFull()) {
+            throw new InvalidAction('Hand cards is full!');
+        }
+
         if (!this.game.isValidPlayerCard(player.id, cardId)) {
             throw new InvalidAction('Invalid picked card');
         }
