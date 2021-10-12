@@ -85,10 +85,11 @@ function buildPlayer(playerDiv, player) {
         playerDiv.classList.add('current-player');
     }
 
-    cards.forEach((card) => {
+    cards.forEach((card, index) => {
         const cardDiv = document.createElement('div');
         card.isMine = isMine;
         card.playerId = player.id;
+        card.position = index;
         cardDiv.classList.add('card');
         buildCard(cardDiv, card);
         playerDiv.append(cardDiv);
@@ -185,6 +186,11 @@ function cardEvent(cardDiv, card) {
 
 function buildCard(cardDiv, card) {
     cardDiv.id = card?.id;
+
+    if (card?.position >= 0) {
+        cardDiv.innerText = card.position;
+    }
+
     if (card?.suit) { // todo use isFaceUp later ....
         cardDiv.style.backgroundImage = `url(images/cards/${card.suit}/${card.rank}.png)`;
     }
