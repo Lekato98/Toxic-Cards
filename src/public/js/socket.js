@@ -1,12 +1,14 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const userId = Math.floor(Math.random() * 1000);
 const gameClient = io(`${ENDPOINT}/game`, {auth: {userId}});
+const pingDiv = document.querySelector('#ping');
 const createGameBtn = document.querySelector('#create-game');
 const joinGameBtn = document.querySelector('#join-game');
 const joinQueueBtn = document.querySelector('#join-queue');
 const startGameBtn = document.querySelector('#start-game');
 let currentState = '';
 let pickedCard = null;
+let startTime = new Date();
 
 const Action = Object.freeze({
     // CREATE_GAME,
@@ -90,7 +92,11 @@ function updateState(state) {
     currentState = stateName;
     const myPosition = players.findIndex((player) => player.userId === userId);
 
-    players.forEach((player, index) => player.isTurn = index === turn);
+    players.forEach((player, index) => {
+        player.isTurn = index === turn;
+        player.isPassedBy = index === passedBy;
+    });
+
     buildUpperContainer(players[getPositionWithOffset(myPosition, 2, players.length)]);
     buildMiddleContainer([
         players[getPositionWithOffset(myPosition, 3, players.length)],
@@ -112,8 +118,22 @@ function errorHandler(payload) {
     alert(JSON.stringify(payload, null, 2));
 }
 
+function pingEvent() {
+    startTime = new Date();
+    gameClient.emit(Event.PING);
+    setTimeout(pingEvent, 1000);
+}
+
+function pongHandler() {
+    const endTime = new Date();
+    const ping = endTime - startTime;
+    pingDiv.innerText = `${ping}ms`;
+    pingDiv.style.color = (ping < 80 ? 'green' : ping < 120 ? 'orange' : 'red');
+}
+
 gameClient.on(Event.UPDATE_STATE, updateState);
 gameClient.on(Event.ERROR, errorHandler);
+gameClient.on(Event.PONG, pongHandler);
 gameClient.on(Event.STATUS, (payload) => {
     if (payload.firstCard) {
         setTimeout(() => {
@@ -134,3 +154,4 @@ gameClient.on(Event.STATUS, (payload) => {
     }
 });
 
+pingEvent();

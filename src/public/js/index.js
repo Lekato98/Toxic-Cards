@@ -85,6 +85,10 @@ function buildPlayer(playerDiv, player) {
         playerDiv.classList.add('current-player');
     }
 
+    if (player?.isPassedBy) {
+        playerDiv.classList.add('player-pass');
+    }
+
     cards.forEach((card) => {
         const cardDiv = document.createElement('div');
         card.isMine = isMine;
