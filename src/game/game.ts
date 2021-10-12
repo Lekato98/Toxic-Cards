@@ -248,7 +248,7 @@ export class Game {
         }
 
         if (Utils.isNullOrUndefined(playerId)) {
-            playerId = this.players.find((_player) => _player.isBot)?.id;
+            playerId = this.players.find((_player) => _player.isBot && !_player.isOut)?.id;
         }
 
         if (!this.isValidPositionToJoin(playerId)) {
@@ -316,15 +316,16 @@ export class Game {
     }
 
     public calculateScores(): void {
-        const scores = this.players.map((player) => player.getCurrentScore());
+        const players = this.players.filter((player) => !player.isOut);
+        const scores = players.map((player) => player.getCurrentScore());
         const minScore = Math.min(...scores);
         if (this.passedBy.getCurrentScore() === minScore) { // win turn
-            this.players.forEach((player) => {
+            players.forEach((player) => {
                 const isTurnWinner = player.getCurrentScore() === minScore; // if he got the minScore so add positive score else negative
                 player.updateTotalScore(isTurnWinner);
             });
         } else { // lose turn
-            this.players.forEach((player) => {
+            players.forEach((player) => {
                 const isTurnWinner = player.getCurrentScore() === minScore;
                 if (isTurnWinner) {
                     player.updateTotalScore(); // default add positive score for the guy who beat the passed player
