@@ -1,11 +1,19 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
 export class BeginOfGame implements State {
     private static instance: BeginOfGame;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 20000; // 20 sec
+    }
+
+    public afkAction(context: Game): void {
+        const player = context.getPlayerByUserId(context.leader);
+        const userId = player.getUserId();
+        context.doAction(Action.START_GAME, {userId});
     }
 
     public static getInstance(): BeginOfGame {

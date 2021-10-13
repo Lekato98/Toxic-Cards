@@ -1,9 +1,15 @@
 const upperContainer = document.querySelector('.upper-container'); // 1 player
 const middleContainer = document.querySelector('.middle-container'); // 2 players + deck
 const bottomContainer = document.querySelector('.bottom-container'); // 1 player - main-player
+const countdownNumberEl = document.querySelector('#countdown-number');
 
+let countdown = 10;
 let handCard = null;
 let otherHandCard = null;
+let timer;
+
+countdownNumberEl.textContent = countdown;
+countdownNumberEl.style.color = 'green';
 
 function buildUpperContainer(player) {
     upperContainer.innerHTML = '';
@@ -228,3 +234,23 @@ function buildGameBoard() {
 void function bootstrap() {
     // buildGameBoard();
 }();
+
+function clock() {
+    countdownNumberEl.textContent = countdown;
+    countdownNumberEl.style.color = countdown < 4 ? 'red' : countdown < 7 ? 'orange' : 'green';
+
+    if (--countdown < 0) {
+        return resetTimer();
+    }
+}
+
+function startTimer(timeMs) {
+    resetTimer();
+    countdown = timeMs / 1000;
+    console.log(countdown, timeMs);
+    timer = setInterval(clock, 1000);
+}
+
+function resetTimer() {
+    clearInterval(timer);
+}

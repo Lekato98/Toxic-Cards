@@ -1,11 +1,17 @@
 import { State, UserActionPayload } from './state';
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { GameAction } from '../game-action';
 
 export class EndOfTurn implements State {
     private static instance: EndOfTurn;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 0;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.END_TURN);
     }
 
     public static getInstance(): EndOfTurn {
@@ -18,7 +24,7 @@ export class EndOfTurn implements State {
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {
         switch (action) {
-            case Action.END_OF_TURN:
+            case Action.END_TURN:
                 return context.endOfTurnAction();
 
             default:

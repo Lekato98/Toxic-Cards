@@ -78,8 +78,14 @@ function updateState(state) {
         topBurnedCards: topBurnedCard,
         passedBy,
         turn,
+        timeMs,
         state: stateName,
     } = state ?? {};
+
+    if (timeMs) {
+        startTimer(timeMs);
+    }
+
     if (stateName !== 'PilePicked' || stateName !== 'BurnPicked') {
         const [pickedCardDiv] = document.getElementsByClassName('pulled-card');
         if (pickedCardDiv) {

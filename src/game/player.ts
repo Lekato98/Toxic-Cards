@@ -18,6 +18,8 @@ export class Player {
         this.id = id;
         this.handCards = new CardHand();
         this.isOut = false;
+        this.userId = Utils.randomInteger(1e9);
+        console.log('xxxxxx');
         this.resetCurrentScore();
         this.resetTotalScore();
 
@@ -53,7 +55,7 @@ export class Player {
     }
 
     public markAsBot(): void {
-        this.userId = null;
+        this.userId = Utils.randomInteger(1e9);
         this.isBot = true;
     }
 
@@ -97,6 +99,11 @@ export class Player {
 
     public hasCard(cardId: string): boolean {
         return this.handCards.contains(cardId);
+    }
+
+    public getRandomCard(): Card {
+        const randomIndex = Utils.randomInteger(this.handCards.getSize());
+        return this.handCards.getCardByOrder(randomIndex);
     }
 
     public reset(): void {

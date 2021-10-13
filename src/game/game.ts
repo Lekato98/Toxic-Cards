@@ -26,8 +26,8 @@ export class InvalidAction extends Error {
 export enum Action {
     // CREATE_GAME,
     START_GAME,
-    BEGIN_OF_ROUND,
-    BEGIN_OF_TURN,
+    START_ROUND,
+    START_TURN,
     JOIN_AS_PLAYER,
     JOIN_AS_SPECTATOR,
     DISTRIBUTE_CARD,
@@ -44,9 +44,9 @@ export enum Action {
     SHOW_ONE_OTHER_HAND_CARD,
     NEXT_TURN,
     PASS,
-    END_OF_TURN,
-    END_OF_ROUND,
-    END_OF_GAME,
+    END_TURN,
+    END_ROUND,
+    END_GAME,
     RESTART,
     LEAVE,
     // NO_ACTION,
@@ -79,14 +79,14 @@ export class Game {
     // all actions that's will be called directly from game
     public readonly INTERNAL_BASED_ACTION = [
         Action.START_GAME,
-        Action.BEGIN_OF_ROUND,
-        Action.BEGIN_OF_TURN,
+        Action.START_ROUND,
+        Action.START_TURN,
         Action.DISTRIBUTE_CARD,
         Action.SELECT_FIRST_TURN,
         Action.BURN_CARD,
-        Action.END_OF_TURN,
-        Action.END_OF_ROUND,
-        Action.END_OF_GAME,
+        Action.END_TURN,
+        Action.END_ROUND,
+        Action.END_GAME,
         Action.NEXT_TURN,
     ];
     // all actions that's need to check isValidUser (real user)
@@ -113,6 +113,8 @@ export class Game {
         Action.PICK_CARD_FROM_PILE,
         Action.BURN_ONE_HAND_CARD,
     ];
+    private timeout: number;
+    private timeoutStartDate: Date;
 
     constructor(gameConfigs: GameConfig, state: State, creatorId?: number) {
         const {
@@ -135,6 +137,7 @@ export class Game {
         this.pickedCard = null;
         this.passedBy = null;
         this.leader = creatorId ?? null;
+        this.timeoutStartDate = new Date();
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
@@ -143,7 +146,7 @@ export class Game {
     }
 
     public get numberOfUserPlayers(): number {
-        return this.userPlayer.size;
+        return this.players.filter((player) => !player.isBot).length;
     }
 
     public get numberOfSpectators(): number {
@@ -157,6 +160,7 @@ export class Game {
     public initializePlayers(): void {
         for (let id = 0; id < this.numberOfPlayers; ++id) {
             this.players[id] = new Player(id);
+            this.userPlayer.set(this.players[id].getUserId(), this.players[id]);
         }
     }
 
@@ -165,21 +169,23 @@ export class Game {
     }
 
     public setState(state: State): void {
+        this.clearTimeout();
         this.state = state;
         GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
 
-        if (this.state instanceof BeginOfRound) {
-            this.doAction(Action.BEGIN_OF_ROUND);
-        } else if (this.state instanceof Burn) {
-            this.doAction(Action.BURN_CARD);
-        } else if (this.state instanceof EndOfRound) {
-            this.doAction(Action.END_OF_ROUND);
-        } else if (this.state instanceof BeginOfTurn) {
-            this.doAction(Action.BEGIN_OF_TURN);
-        } else if (this.state instanceof EndOfTurn) {
-            this.doAction(Action.END_OF_TURN);
-        } else if (this.state instanceof EndOfGame) {
-            this.doAction(Action.END_OF_GAME);
+        const player = this.getCurrentPlayer();
+        const cb = () => {
+            try {
+                state.afkAction(this);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (player.isBot) {
+            this.setTimeout(() => cb(), 1000);
+        } else {
+            this.setTimeout(() => cb(), state.timeMs);
         }
     }
 
@@ -352,6 +358,7 @@ export class Game {
             numberOfPlayers: this.numberOfUserPlayers,
             numberOfSpectators: this.numberOfSpectators,
             state: this.state.constructor.name,
+            timeMs: this.getTimeMs(),
             turn: this.turn,
             topBurnedCards: this.burnedCards.top?.toShow() ?? {},
             passedBy: this.passedBy?.id,
@@ -374,7 +381,7 @@ export class Game {
     }
 
     public isUserTurn(userId: number): boolean {
-        return this.turn === this.userPlayer.get(userId).id;
+        return this.turn === this.userPlayer.get(userId)?.id;
     }
 
     public isLeader(userId: number): boolean {
@@ -409,5 +416,24 @@ export class Game {
         if (userId === this.leader) {
             // @todo set new leader
         }
+    }
+
+    private getTimeMs(): number {
+        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.state.timeMs);
+    }
+
+    public setTimeout(cb: Function, timeMs: number, ...args): void {
+        this.clearTimeout();
+        this.timeoutStartDate = new Date(Date.now() + timeMs);
+        this.timeout = setTimeout(cb, timeMs, ...args);
+    }
+
+    public getCurrentPlayer(): Player {
+        return this.players[this.turn];
+    }
+
+    public clearTimeout(): void {
+        clearTimeout(this.timeout);
+        this.timeoutStartDate = new Date();
     }
 }

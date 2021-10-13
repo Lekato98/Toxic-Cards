@@ -1,4 +1,4 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
@@ -8,8 +8,21 @@ interface ShowOneHandCardActionPayload extends UserActionPayload {
 
 export class ShowOneHandCard implements State {
     private static instance: ShowOneHandCard;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 1000;
+    }
+
+    public afkAction(context: Game) {
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        const card = player.getRandomCard();
+        const cardId = card.id;
+        context.doAction(Action.SHOW_ONE_HAND_CARD, {
+            userId,
+            cardId,
+        });
     }
 
     public static getInstance(): ShowOneHandCard {
