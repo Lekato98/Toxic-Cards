@@ -236,7 +236,7 @@ void function bootstrap() {
 }();
 
 function clock() {
-    countdownNumberEl.textContent = countdown;
+    countdownNumberEl.textContent = String(Math.max(countdown, 0));
     countdownNumberEl.style.color = countdown < 4 ? 'red' : countdown < 7 ? 'orange' : 'green';
 
     if (--countdown < 0) {
@@ -246,7 +246,7 @@ function clock() {
 
 function startTimer(timeMs) {
     resetTimer();
-    countdown = timeMs / 1000;
+    countdown = (~~((timeMs + 999) / 1000)) - 1;
     console.log(countdown, timeMs);
     timer = setInterval(clock, 1000);
 }

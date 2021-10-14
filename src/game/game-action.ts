@@ -36,6 +36,7 @@ export class GameAction {
     }
 
     public beginOfRoundAction() {
+        ++this.game.numberOfRounds;
         this.game.deck.shuffle();
         this.distributeCardsAction();
         this.showTwoHandCardsAction();

@@ -13,19 +13,24 @@ export class ExchangeHandWithOther implements State {
     public timeMs: number;
 
     private constructor() {
-        this.timeMs = 1000;
+        this.timeMs = 5000;
     }
 
     public afkAction(context: Game) {
-        // const player = context.getCurrentPlayer();
-        // const userId = player.getUserId();
-        // const card = player.getRandomCard();
-        // const cardId = card.id;
-        // context.doAction(Action.EXCHANGE_PICK_WITH_HAND, {
-        //     userId,
-        //     cardId,
-        // });
-        // @todo get random player
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        const card = player.getRandomCard();
+        const cardId = card.id;
+        const otherPlayer = context.getRandomPlayerButNotCurrent();
+        const otherPlayerId = otherPlayer.id;
+        const otherCard = otherPlayer.getRandomCard();
+        const otherCardId = otherCard.id;
+        context.doAction(Action.EXCHANGE_PICK_WITH_HAND, {
+            userId,
+            cardId,
+            otherPlayerId,
+            otherCardId,
+        });
     }
 
     public static getInstance(): ExchangeHandWithOther {

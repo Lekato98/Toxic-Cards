@@ -2,18 +2,14 @@ import { Card } from './card';
 import { CardStack } from './card-stack';
 import { Deck } from './deck';
 import { Player } from './player';
-import { Burn } from './state/burn';
-import { EndOfRound } from './state/end-of-round';
-import { BeginOfRound } from './state/begin-of-round';
 import { State, UserActionPayload } from './state/state';
-import { BeginOfTurn } from './state/begin-of-turn';
-import { EndOfTurn } from './state/end-of-turn';
-import { EndOfGame } from './state/end-of-game';
 import { Utils } from './utils';
 import { Event, GameSocketService } from '../socket/socket';
 import { BeginOfGame } from './state/begin-of-game';
 import { GameAction } from './game-action';
 import { GameConfig } from './game-config';
+import { BeginOfRound } from './state/begin-of-round';
+import { BeginOfTurn } from './state/begin-of-turn';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -113,7 +109,9 @@ export class Game {
         Action.PICK_CARD_FROM_PILE,
         Action.BURN_ONE_HAND_CARD,
     ];
+    public numberOfRounds: number;
     private timeout: number;
+    private timeMs: number;
     private timeoutStartDate: Date;
 
     constructor(gameConfigs: GameConfig, state: State, creatorId?: number) {
@@ -131,18 +129,20 @@ export class Game {
         this.userSpectator = new Map<number, boolean>();
         this.jointType = new Map<number, JoinType>();
         this.players = new Array<Player>(this.numberOfPlayers);
-        this.state = state;
         this.action = new GameAction(this);
         this.isGameStarted = false;
         this.pickedCard = null;
         this.passedBy = null;
         this.leader = creatorId ?? null;
+        this.numberOfRounds = 0;
         this.timeoutStartDate = new Date();
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
             this.joinAsPlayer(creatorId);
         }
+
+        this.setState(state);
     }
 
     public get numberOfUserPlayers(): number {
@@ -169,24 +169,28 @@ export class Game {
     }
 
     public setState(state: State): void {
-        this.clearTimeout();
         this.state = state;
-        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
-
         const player = this.getCurrentPlayer();
         const cb = () => {
             try {
-                state.afkAction(this);
+                this.state.afkAction(this);
+                console.log('AFK Trigger');
             } catch (e) {
                 console.error(e);
             }
         }
 
-        if (player.isBot) {
+        if (player?.isBot) {
+            console.log('AFK BOT');
+            this.timeMs = 1000;
             this.setTimeout(() => cb(), 1000);
         } else {
-            this.setTimeout(() => cb(), state.timeMs);
+            console.log('AFK USER');
+            this.timeMs = this.state.timeMs;
+            this.setTimeout(() => cb(), this.timeMs);
         }
+
+        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
     }
 
     public validateUsingActionBased(action: Action, userId?: number): boolean {
@@ -362,6 +366,7 @@ export class Game {
             turn: this.turn,
             topBurnedCards: this.burnedCards.top?.toShow() ?? {},
             passedBy: this.passedBy?.id,
+            numberOfRounds: this.numberOfRounds,
             isGameStarted: this.isGameStarted,
         };
     }
@@ -419,7 +424,7 @@ export class Game {
     }
 
     private getTimeMs(): number {
-        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.state.timeMs);
+        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.timeMs);
     }
 
     public setTimeout(cb: Function, timeMs: number, ...args): void {
@@ -435,5 +440,13 @@ export class Game {
     public clearTimeout(): void {
         clearTimeout(this.timeout);
         this.timeoutStartDate = new Date();
+        this.timeMs = 0;
+    }
+
+    public getRandomPlayerButNotCurrent(): Player {
+        const players = this.players.filter((player) => player.id !== this.turn);
+        const randomIndex = Utils.randomIndex(players);
+
+        return players[randomIndex];
     }
 }

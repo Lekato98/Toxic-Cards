@@ -19,7 +19,6 @@ export class Player {
         this.handCards = new CardHand();
         this.isOut = false;
         this.userId = Utils.randomInteger(1e9);
-        console.log('xxxxxx');
         this.resetCurrentScore();
         this.resetTotalScore();
 

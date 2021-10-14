@@ -11,7 +11,7 @@ export class ShowOneHandCard implements State {
     public timeMs: number;
 
     private constructor() {
-        this.timeMs = 1000;
+        this.timeMs = 5000;
     }
 
     public afkAction(context: Game) {

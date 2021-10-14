@@ -11,8 +11,7 @@ export class BeginOfGame implements State {
     }
 
     public afkAction(context: Game): void {
-        const player = context.getPlayerByUserId(context.leader);
-        const userId = player.getUserId();
+        const userId = context.leader;
         context.doAction(Action.START_GAME, {userId});
     }
 
