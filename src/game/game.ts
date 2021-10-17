@@ -284,6 +284,7 @@ export class Game {
                 const player = this.userPlayer.get(userId);
                 player.markAsBot();
                 this.userPlayer.delete(userId);
+                this.userPlayer.set(player.getUserId(), player);
                 break;
 
             case JoinType.SPECTATOR:
