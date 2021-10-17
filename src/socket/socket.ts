@@ -18,6 +18,7 @@ export enum Event {
     ACTION = 'action',
     LEAVE_GAME = 'leave_game',
     UPDATE_STATE = 'update_state',
+    SOUND = 'sound',
     RECONNECT = 'reconnect',
     ERROR = 'error',
     DISCONNECT = 'disconnect',
@@ -83,6 +84,7 @@ export abstract class GameSocketService {
         GameSocketService.joinQueueEvent(client);
         GameSocketService.leaveGameEvent(client);
         GameSocketService.actionEvent(client);
+        GameSocketService.soundEvent(client);
     }
 
     public static onDisconnect(client: Socket): void {
@@ -204,6 +206,14 @@ export abstract class GameSocketService {
             } catch (e) {
                 GameSocketService.handleError(client, e);
             }
+        });
+    }
+
+    public static soundEvent(client: Socket): void {
+        client.on(Event.SOUND, (payload) => {
+            const {userId} = client.data;
+            const roomId = String(this.userGames.get(userId)?.id) ?? '-1';
+            GameSocketService.namespace.to(roomId).emit(Event.SOUND, {src: payload.src});
         });
     }
 
