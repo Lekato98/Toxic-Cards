@@ -10,16 +10,16 @@ export class BeginOfRound implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.START_ROUND);
-    }
-
     public static getInstance(): BeginOfRound {
         if (!this.instance) {
             this.instance = new BeginOfRound();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.START_ROUND);
     }
 
     public action(context: GameAction, action: Action, payload?: any): void {

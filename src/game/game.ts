@@ -9,7 +9,6 @@ import { BeginOfGame } from './state/begin-of-game';
 import { GameAction } from './game-action';
 import { GameConfig } from './game-config';
 import { BeginOfRound } from './state/begin-of-round';
-import { BeginOfTurn } from './state/begin-of-turn';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -62,6 +61,7 @@ export class Game {
     public readonly burnedCards: CardStack;
     public readonly pileOfCards: CardStack;
     public readonly action: GameAction;
+    public readonly BOT_TIMEOUT: number = 2000;
     public state: State;
     public passedBy: Player;
     public pickedCard: Card;
@@ -91,6 +91,7 @@ export class Game {
         Action.JOIN_AS_SPECTATOR,
         Action.LEAVE,
     ];
+    public numberOfRounds: number;
     private readonly userPlayer: Map<number, Player>;
     private readonly userSpectator: Map<number, boolean>;
     private readonly jointType: Map<number, JoinType>;
@@ -109,7 +110,6 @@ export class Game {
         Action.PICK_CARD_FROM_PILE,
         Action.BURN_ONE_HAND_CARD,
     ];
-    public numberOfRounds: number;
     private timeout: number;
     private timeMs: number;
     private timeoutStartDate: Date;
@@ -168,29 +168,14 @@ export class Game {
         this.leader = userId;
     }
 
-    public setState(state: State): void {
-        this.state = state;
-        const player = this.getCurrentPlayer();
-        const cb = () => {
-            try {
-                this.state.afkAction(this);
-                console.log('AFK Trigger');
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        if (player?.isBot) {
-            console.log('AFK BOT');
-            this.timeMs = 1000;
-            this.setTimeout(() => cb(), 1000);
+    public setState(state: State, withTimeout: boolean = false): void {
+        if (withTimeout) {
+            this.timeMs = (this.state === BeginOfRound.getInstance() ? 5000 : 0);
+            GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+            this.setTimeout(() => this.setStateImmediately(state), this.timeMs);
         } else {
-            console.log('AFK USER');
-            this.timeMs = this.state.timeMs;
-            this.setTimeout(() => cb(), this.timeMs);
+            this.setStateImmediately(state);
         }
-
-        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
     }
 
     public validateUsingActionBased(action: Action, userId?: number): boolean {
@@ -417,16 +402,6 @@ export class Game {
         return this.jointType.has(userId);
     }
 
-    private fixLeader(userId: number): void {
-        if (userId === this.leader) {
-            // @todo set new leader
-        }
-    }
-
-    private getTimeMs(): number {
-        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.timeMs);
-    }
-
     public setTimeout(cb: Function, timeMs: number, ...args): void {
         this.clearTimeout();
         this.timeoutStartDate = new Date(Date.now() + timeMs);
@@ -448,5 +423,40 @@ export class Game {
         const randomIndex = Utils.randomIndex(players);
 
         return players[randomIndex];
+    }
+
+    private autoAction(): void {
+        try {
+            this.state.afkAction(this);
+            console.log('AFK Trigger');
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    private setStateImmediately(state: State): void {
+        this.state = state;
+        const player = this.getCurrentPlayer();
+
+        if (player?.isBot) {
+            console.log('AFK BOT');
+            this.timeMs = this.BOT_TIMEOUT;
+        } else {
+            console.log('AFK USER');
+            this.timeMs = this.state.timeMs;
+        }
+
+        this.setTimeout(() => this.autoAction(), this.timeMs);
+        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+    }
+
+    private fixLeader(userId: number): void {
+        if (userId === this.leader) {
+            // @todo set new leader
+        }
+    }
+
+    private getTimeMs(): number {
+        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.timeMs);
     }
 }

@@ -28,9 +28,18 @@ enum NamespacePrefix {
     GAME = '/game',
 }
 
+enum DisconnectReason {
+    PING_TIMEOUT = 'ping timeout',
+    TRANSPORT_CLOSE = 'transport close',
+    TRANSPORT_ERROR = 'transport error',
+    SERVER_DISCONNECT = 'io server disconnect',
+    CLIENT_DISCONNECT = 'io client disconnect',
+}
+
 export abstract class GameSocketService {
     private static namespace: Namespace;
     private static userClients: Map<number, Socket>;
+    private static userTimeout: Map<number, number>;
     private static games: Map<number, Game>;
     private static userGames: Map<number, Game>;
 
@@ -77,12 +86,18 @@ export abstract class GameSocketService {
     }
 
     public static onDisconnect(client: Socket): void {
-        client.on(Event.DISCONNECT, (reason) => {
+        client.on(Event.DISCONNECT, (reason: DisconnectReason) => {
             console.log(`Client#${ client.id },User#${ client.data.userId } left Game Namespace, due to ${ reason }`);
             const {userId} = client.data;
             if (GameSocketService.isInGame(userId)) {
                 const game = GameSocketService.userGames.get(userId);
                 GameSocketService.unregisterClient(client, game);
+                switch (reason) {
+                    case DisconnectReason.SERVER_DISCONNECT:
+                    case DisconnectReason.CLIENT_DISCONNECT:
+                        // case DisconnectReason.TRANSPORT_CLOSE:
+                        GameSocketService.userClients.delete(userId);
+                }
             }
         });
     }
@@ -95,16 +110,15 @@ export abstract class GameSocketService {
         client.prependAny((...args) => {
             const [event, ...payload] = args;
             const {userId} = client.data;
-            if (event === Event.PING) {
-                return;
+            if (event !== Event.PING) {
+                console.log(
+                    chalk.blue('~GAME_EVENT'),
+                    'namespace:', NamespacePrefix.GAME,
+                    ', userId:', userId,
+                    ', event:', chalk.green(event.toUpperCase()),
+                    ', payload:', payload,
+                );
             }
-            console.log(
-                chalk.blue('~GAME_EVENT'),
-                'namespace:', NamespacePrefix.GAME,
-                ', userId:', userId,
-                ', event:', chalk.green(event.toUpperCase()),
-                ', payload:', payload,
-            );
         });
     }
 
@@ -285,9 +299,24 @@ export abstract class GameSocketService {
     }
 
     private static deleteEmptyGame(game: Game): void {
-        if (!game.numberOfUserPlayers) {
+        if (game.isEmpty()) {
+            game.clearTimeout();
             GameSocketService.games.delete(game.id);
             console.log(`Game#${ game.id } has be deleted successfully`);
         }
+    }
+
+    private static setUserTimeout(userId: number, timeMs): void {
+        GameSocketService.userTimeout.set(
+            userId,
+            // @ts-ignore
+            setTimeout(() => {
+
+            }, timeMs),
+        );
+    }
+
+    private static clearUserTimeout(userId: number): void {
+        clearTimeout(GameSocketService.userTimeout.get(userId));
     }
 }

@@ -10,16 +10,16 @@ export class EndOfTurn implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.END_TURN);
-    }
-
     public static getInstance(): EndOfTurn {
         if (!this.instance) {
             this.instance = new EndOfTurn();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.END_TURN);
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

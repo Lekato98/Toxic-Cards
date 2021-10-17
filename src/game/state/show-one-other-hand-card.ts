@@ -15,6 +15,14 @@ export class ShowOneOtherHandCard implements State {
         this.timeMs = 5000;
     }
 
+    public static getInstance(): ShowOneOtherHandCard {
+        if (!this.instance) {
+            this.instance = new ShowOneOtherHandCard();
+        }
+
+        return this.instance;
+    }
+
     public afkAction(context: Game) {
         // @todo maybe move logic to getActionWithOtherRandomPayload
         const player = context.getCurrentPlayer();
@@ -31,14 +39,6 @@ export class ShowOneOtherHandCard implements State {
             otherPlayerId,
             otherCardId,
         });
-    }
-
-    public static getInstance(): ShowOneOtherHandCard {
-        if (!this.instance) {
-            this.instance = new ShowOneOtherHandCard();
-        }
-
-        return this.instance;
     }
 
     public action(context: GameAction, action: Action, payload?: ShowOneOtherHandCardActionPayload): void {

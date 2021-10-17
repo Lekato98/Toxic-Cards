@@ -14,6 +14,14 @@ export class ShowOneHandCard implements State {
         this.timeMs = 5000;
     }
 
+    public static getInstance(): ShowOneHandCard {
+        if (!this.instance) {
+            this.instance = new ShowOneHandCard();
+        }
+
+        return this.instance;
+    }
+
     public afkAction(context: Game) {
         const player = context.getCurrentPlayer();
         const userId = player.getUserId();
@@ -23,14 +31,6 @@ export class ShowOneHandCard implements State {
             userId,
             cardId,
         });
-    }
-
-    public static getInstance(): ShowOneHandCard {
-        if (!this.instance) {
-            this.instance = new ShowOneHandCard();
-        }
-
-        return this.instance;
     }
 
     public action(context: GameAction, action: Action, payload?: ShowOneHandCardActionPayload): void {

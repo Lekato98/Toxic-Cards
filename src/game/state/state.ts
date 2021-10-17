@@ -11,6 +11,8 @@ export interface UserActionPayload {
 
 export interface State {
     timeMs: number;
+
     action(context: GameAction, action: Action, payload?: UserActionPayload): void;
+
     afkAction(context: Game);
 }

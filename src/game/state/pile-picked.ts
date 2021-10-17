@@ -11,7 +11,15 @@ export class PilePicked implements State {
     public timeMs: number;
 
     private constructor() {
-        this.timeMs = 5000;
+        this.timeMs = 10000;
+    }
+
+    public static getInstance(): PilePicked {
+        if (!this.instance) {
+            this.instance = new PilePicked();
+        }
+
+        return this.instance;
     }
 
     public afkAction(context: Game) {
@@ -23,14 +31,6 @@ export class PilePicked implements State {
             userId,
             cardId,
         });
-    }
-
-    public static getInstance(): PilePicked {
-        if (!this.instance) {
-            this.instance = new PilePicked();
-        }
-
-        return this.instance;
     }
 
     public action(context: GameAction, action: Action, payload?: PilePickedPayload): void {

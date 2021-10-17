@@ -41,7 +41,7 @@ export class GameAction {
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
         this.game.nextTurn();
-        this.game.setState(BeginOfTurn.getInstance());
+        this.game.setState(BeginOfTurn.getInstance(), true);
     }
 
     public beginOfTurnAction(): void {
@@ -121,8 +121,9 @@ export class GameAction {
     }
 
     public useAbilityAction(): void {
-        const cardAbility = this.game.pickedCard.getAbility();
-        this.game.pickedCard.markAsUsed();
+        const pickedCard = this.game.pickedCard;
+        const cardAbility = pickedCard.getAbility();
+        pickedCard.markAsUsed();
         switch (cardAbility) {
             case CardAbility.EXCHANGE_HAND_WITH_OTHER:
                 return this.game.setState(ExchangeHandWithOther.getInstance());

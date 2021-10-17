@@ -10,17 +10,17 @@ export class BeginOfGame implements State {
         this.timeMs = 20000; // 20 sec
     }
 
-    public afkAction(context: Game): void {
-        const userId = context.leader;
-        context.doAction(Action.START_GAME, {userId});
-    }
-
     public static getInstance(): BeginOfGame {
         if (!this.instance) {
             this.instance = new BeginOfGame();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game): void {
+        const userId = context.leader;
+        context.doAction(Action.START_GAME, {userId});
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

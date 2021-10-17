@@ -195,6 +195,9 @@ body {
     background-size: cover;
     background-position: center;
     color: white;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 50px;
 }
 
 .burnt-card {

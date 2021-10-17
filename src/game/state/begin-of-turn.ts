@@ -10,16 +10,16 @@ export class BeginOfTurn implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.START_TURN);
-    }
-
     public static getInstance(): BeginOfTurn {
         if (!this.instance) {
             this.instance = new BeginOfTurn();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.START_TURN);
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

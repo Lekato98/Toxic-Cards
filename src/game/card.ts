@@ -1,5 +1,3 @@
-import { nanoid } from 'nanoid';
-
 export enum CardSuit {
     CLUBS = 'C',
     DIAMONDS = 'D',

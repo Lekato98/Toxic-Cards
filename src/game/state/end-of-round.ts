@@ -10,16 +10,16 @@ export class EndOfRound implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.END_ROUND);
-    }
-
     public static getInstance(): EndOfRound {
         if (!this.instance) {
             this.instance = new EndOfRound();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.END_ROUND);
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

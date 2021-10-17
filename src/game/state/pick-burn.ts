@@ -11,13 +11,7 @@ export class PickBurn implements State {
     public timeMs: number;
 
     private constructor() {
-        this.timeMs = 5000;
-    }
-
-    public afkAction(context: Game) {
-        const player = context.getCurrentPlayer();
-        const userId = player.getUserId();
-        context.doAction(Action.PICK_CARD_FROM_PILE, {userId});
+        this.timeMs = 10000;
     }
 
     public static getInstance(): PickBurn {
@@ -26,6 +20,12 @@ export class PickBurn implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        context.doAction(Action.PICK_CARD_FROM_PILE, {userId});
     }
 
     public action(context: GameAction, action: Action, payload?: PickBurnPayload): void {

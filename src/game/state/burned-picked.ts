@@ -11,7 +11,15 @@ export class BurnedPicked implements State {
     public timeMs: number;
 
     private constructor() {
-        this.timeMs = 5000;
+        this.timeMs = 10000;
+    }
+
+    public static getInstance(): BurnedPicked {
+        if (!this.instance) {
+            this.instance = new BurnedPicked();
+        }
+
+        return this.instance;
     }
 
     public afkAction(context: Game) {
@@ -23,14 +31,6 @@ export class BurnedPicked implements State {
             userId,
             cardId,
         });
-    }
-
-    public static getInstance(): BurnedPicked {
-        if (!this.instance) {
-            this.instance = new BurnedPicked();
-        }
-
-        return this.instance;
     }
 
     public action(context: GameAction, action: Action, payload?: BurnedPickedPayload): void {

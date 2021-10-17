@@ -10,16 +10,16 @@ export class Burn implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.BURN_CARD);
-    }
-
     public static getInstance(): Burn {
         if (!this.instance) {
             this.instance = new Burn();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.BURN_CARD);
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

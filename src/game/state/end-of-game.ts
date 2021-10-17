@@ -10,16 +10,16 @@ export class EndOfGame implements State {
         this.timeMs = 0;
     }
 
-    public afkAction(context: Game) {
-        context.doAction(Action.END_GAME);
-    }
-
     public static getInstance(): EndOfGame {
         if (!this.instance) {
             this.instance = new EndOfGame();
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        context.doAction(Action.END_GAME);
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {
