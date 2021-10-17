@@ -278,7 +278,7 @@ export abstract class GameSocketService {
         const gameId = String(game.id);
         client.join(gameId); // join client to room of game
         GameSocketService.userGames.set(userId, game); // assign userId to map game
-        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
+        game.emitState();
         GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just joined the game!`}); // broadcast message to room members
     }
 
@@ -288,7 +288,7 @@ export abstract class GameSocketService {
         client.leave(gameId);
         game.doAction(Action.LEAVE, {userId});
         GameSocketService.userGames.delete(userId);
-        GameSocketService.emitRoom(Event.UPDATE_STATE, gameId, game.getState()); // update state
+        game.emitState();
         GameSocketService.emitRoom(Event.SUCCESS, gameId, {message: `${ userId } just left the game!`}); // broadcast message to room members
         GameSocketService.deleteEmptyGame(game);
     }

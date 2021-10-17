@@ -83,6 +83,7 @@ function buildBottomContainer(player) {
 }
 
 function buildPlayer(playerDiv, player) {
+    const scoreDiv = document.createElement('div');
     const cards = player?.handCards?.cards ?? [];
     const isMine = player?.userId === userId;
     playerDiv.id = player?.id;
@@ -95,6 +96,7 @@ function buildPlayer(playerDiv, player) {
         playerDiv.classList.add('player-pass');
     }
 
+    scoreDiv.classList.add('score');
     cards.forEach((card) => {
         const cardDiv = document.createElement('div');
         card.isMine = isMine;
@@ -104,6 +106,9 @@ function buildPlayer(playerDiv, player) {
         playerDiv.append(cardDiv);
         cardEvent(cardDiv, card);
     });
+
+    scoreDiv.innerText = `Score: ${player.score}`;
+    playerDiv.append(scoreDiv);
 }
 
 function burnOneHandCardAction(card) {

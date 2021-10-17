@@ -200,6 +200,13 @@ body {
     line-height: 50px;
 }
 
+.score {
+    color: white;
+    font-size: 9pt;
+    background-color: black;
+    z-index: 5;
+}
+
 .burnt-card {
     background-image: none;
     background-color: black;

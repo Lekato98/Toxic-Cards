@@ -151,7 +151,7 @@ gameClient.on(Event.STATUS, (payload) => {
             setTimeout(() => {
                 firstCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
                 secondCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
-            }, 5000);
+            }, 7000);
         }, 1000);
     } else if (payload.pickedCard) {
         pickedCard = payload.pickedCard;

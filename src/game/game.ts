@@ -170,8 +170,8 @@ export class Game {
 
     public setState(state: State, withTimeout: boolean = false): void {
         if (withTimeout) {
-            this.timeMs = (this.state === BeginOfRound.getInstance() ? 5000 : 0);
-            GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+            this.timeMs = (this.state === BeginOfRound.getInstance() ? 7000 : 0);
+            this.emitState();
             this.setTimeout(() => this.setStateImmediately(state), this.timeMs);
         } else {
             this.setStateImmediately(state);
@@ -447,7 +447,7 @@ export class Game {
         }
 
         this.setTimeout(() => this.autoAction(), this.timeMs);
-        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+        this.emitState();
     }
 
     private fixLeader(userId: number): void {
@@ -458,5 +458,12 @@ export class Game {
 
     private getTimeMs(): number {
         return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.timeMs);
+    }
+
+    public emitState(): void {
+        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+        if (this.state === BeginOfRound.getInstance()) {
+            this.players.forEach((player) => !player.handCards.isEmpty() && player.showTwoHandCards());
+        }
     }
 }
