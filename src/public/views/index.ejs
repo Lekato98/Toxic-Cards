@@ -14,18 +14,26 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<div id="ping">0ms</div>
+<div class="lalo">
+    <div id="countdown">
+        <div id="countdown-number"></div>
+        <!--        <svg>-->
+        <!--            <circle r="18" cx="20" cy="20"></circle>-->
+        <!--        </svg>-->
+    </div>
+</div>
 <div class="main-container">
     <div class="btn-container">
         <button id="create-game" class="menu-btn" onclick="createGame()">Create Game</button>
         <button id="join-game" class="menu-btn" onclick="joinGame()">Join Game</button>
-        <!-- <button id="action" class="menu-btn action-btn" onclick="action()">ACTION</button> -->
+        <button id="sound" class="menu-btn action-btn" onclick="emitSound()">Sound</button>
         <button id="start-game" class="menu-btn" onclick="startGame()">Start Game</button>
         <button id="join-queue" class="menu-btn" onclick="joinQueue()">Join Queue</button>
     </div>
     <!-- End of Menu Buttons -->
     <div class="board-container">
         <div class="layer-container upper-container">
-
             <div class="player">
                 <div class="card">1</div>
                 <div class="card">2</div>
@@ -35,6 +43,7 @@
                 <div class="card">6</div>
                 <div class="card">7</div>
                 <div class="card">8</div>
+                <div class="score">Score: 0</div>
             </div>
         </div>
         <div class="layer-container middle-container">
@@ -47,6 +56,7 @@
                 <div class="card">6</div>
                 <div class="card">7</div>
                 <div class="card">8</div>
+                <div class="score">Score: 0</div>
             </div>
             <div class="middle-content deck-container">
                 <div class="deck">
@@ -67,6 +77,7 @@
                 <div class="card">6</div>
                 <div class="card">7</div>
                 <div class="card">8</div>
+                <div class="score">Score: 0</div>
             </div>
         </div>
         <div class="layer-container bottom-container">
@@ -80,10 +91,12 @@
                 <div class="card">6</div>
                 <div class="card">7</div>
                 <div class="card">8</div>
+                <div class="score">Score: 0</div>
             </div>
             <button id="pass" class="player-btn">PASS</button>
         </div>
     </div>
+    <audio id="sounds" controls hidden></audio>
 </div>
 
 <script>const ENDPOINT = '<%= DYNAMIC_ENDPOINT; %>';</script>

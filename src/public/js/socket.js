@@ -1,12 +1,16 @@
 const DEFAULT_CARD_URL = 'url(images/poker-cards.png)';
 const userId = Math.floor(Math.random() * 1000);
 const gameClient = io(`${ENDPOINT}/game`, {auth: {userId}});
+const pingDiv = document.querySelector('#ping');
 const createGameBtn = document.querySelector('#create-game');
 const joinGameBtn = document.querySelector('#join-game');
 const joinQueueBtn = document.querySelector('#join-queue');
 const startGameBtn = document.querySelector('#start-game');
+const sounds = document.querySelector('#sounds');
+const soundBtn = document.querySelector('#sound');
 let currentState = '';
 let pickedCard = null;
+let startTime = new Date();
 
 const Action = Object.freeze({
     // CREATE_GAME,
@@ -39,6 +43,7 @@ const Event = Object.freeze({
     LEAVE_GAME: 'leave_game',
     UPDATE_STATE: 'update_state',
     RECONNECT: 'reconnect',
+    SOUND: 'sound',
     ERROR: 'error',
     DISCONNECT: 'disconnect',
 });
@@ -76,8 +81,14 @@ function updateState(state) {
         topBurnedCards: topBurnedCard,
         passedBy,
         turn,
+        timeMs,
         state: stateName,
     } = state ?? {};
+
+    if (timeMs) {
+        startTimer(timeMs);
+    }
+
     if (stateName !== 'PilePicked' || stateName !== 'BurnPicked') {
         const [pickedCardDiv] = document.getElementsByClassName('pulled-card');
         if (pickedCardDiv) {
@@ -90,7 +101,11 @@ function updateState(state) {
     currentState = stateName;
     const myPosition = players.findIndex((player) => player.userId === userId);
 
-    players.forEach((player, index) => player.isTurn = index === turn);
+    players.forEach((player, index) => {
+        player.isTurn = index === turn;
+        player.isPassedBy = index === passedBy;
+    });
+
     buildUpperContainer(players[getPositionWithOffset(myPosition, 2, players.length)]);
     buildMiddleContainer([
         players[getPositionWithOffset(myPosition, 3, players.length)],
@@ -112,8 +127,44 @@ function errorHandler(payload) {
     alert(JSON.stringify(payload, null, 2));
 }
 
+function pingEvent() {
+    startTime = new Date();
+    gameClient.emit(Event.PING);
+    setTimeout(pingEvent, 1000);
+}
+
+function pongHandler() {
+    const endTime = new Date();
+    const ping = endTime - startTime;
+    pingDiv.innerText = `${ping}ms`;
+    pingDiv.style.color = (ping < 80 ? 'green' : ping < 120 ? 'orange' : 'red');
+}
+
+function soundHandler(payload) {
+    const {src} = payload ?? {};
+    sounds.pause();
+    sounds.src = src;
+    sounds.load();
+    sounds.play();
+}
+
+function emitSound() {
+    const soundId = prompt(`Pick of the following sounds:
+    1-بسم الله عليك
+    2-ادعس ابو طلال
+    3-طبلت
+    4-خش علي بزاكي
+    5-احا`
+        , '1');
+    gameClient.emit(Event.SOUND, {
+        src: `/sounds/${soundId}.mp3`,
+    });
+}
+
 gameClient.on(Event.UPDATE_STATE, updateState);
 gameClient.on(Event.ERROR, errorHandler);
+gameClient.on(Event.PONG, pongHandler);
+gameClient.on(Event.SOUND, soundHandler);
 gameClient.on(Event.STATUS, (payload) => {
     if (payload.firstCard) {
         setTimeout(() => {
@@ -125,7 +176,7 @@ gameClient.on(Event.STATUS, (payload) => {
             setTimeout(() => {
                 firstCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
                 secondCardDiv.style.backgroundImage = DEFAULT_CARD_URL;
-            }, 5000);
+            }, 7000);
         }, 1000);
     } else if (payload.pickedCard) {
         pickedCard = payload.pickedCard;
@@ -134,3 +185,4 @@ gameClient.on(Event.STATUS, (payload) => {
     }
 });
 
+pingEvent();

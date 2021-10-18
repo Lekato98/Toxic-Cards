@@ -1,11 +1,13 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
 export class BeginOfGame implements State {
     private static instance: BeginOfGame;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 20000; // 20 sec
     }
 
     public static getInstance(): BeginOfGame {
@@ -14,6 +16,11 @@ export class BeginOfGame implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game): void {
+        const userId = context.leader;
+        context.doAction(Action.START_GAME, {userId});
     }
 
     public action(context: GameAction, action: Action, payload?: UserActionPayload): void {

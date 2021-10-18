@@ -34,6 +34,7 @@ export class Deck {
         const newSetOfCards = DeckUtil.createDeckOfCardsNTimes(this.deckSize);
         this.clear();
         this.cards.push(...newSetOfCards);
+        this.resetCardsId();
     }
 
     public clear(): void {
@@ -59,6 +60,12 @@ export class Deck {
             [this.cards[currentIndex], this.cards[randomIndex]] = [
                 this.cards[randomIndex], this.cards[currentIndex]];
         }
+
+        this.resetCardsId();
+    }
+
+    public resetCardsId(): void {
+        this.cards.forEach((card, index) => card.id = String(index + 1));
     }
 
     /**

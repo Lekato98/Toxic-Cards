@@ -1,9 +1,15 @@
 const upperContainer = document.querySelector('.upper-container'); // 1 player
 const middleContainer = document.querySelector('.middle-container'); // 2 players + deck
 const bottomContainer = document.querySelector('.bottom-container'); // 1 player - main-player
+const countdownNumberEl = document.querySelector('#countdown-number');
 
+let countdown = 10;
 let handCard = null;
 let otherHandCard = null;
+let timer;
+
+countdownNumberEl.textContent = countdown;
+countdownNumberEl.style.color = 'green';
 
 function buildUpperContainer(player) {
     upperContainer.innerHTML = '';
@@ -77,6 +83,7 @@ function buildBottomContainer(player) {
 }
 
 function buildPlayer(playerDiv, player) {
+    const scoreDiv = document.createElement('div');
     const cards = player?.handCards?.cards ?? [];
     const isMine = player?.userId === userId;
     playerDiv.id = player?.id;
@@ -85,16 +92,23 @@ function buildPlayer(playerDiv, player) {
         playerDiv.classList.add('current-player');
     }
 
-    cards.forEach((card, index) => {
+    if (player?.isPassedBy) {
+        playerDiv.classList.add('player-pass');
+    }
+
+    scoreDiv.classList.add('score');
+    cards.forEach((card) => {
         const cardDiv = document.createElement('div');
         card.isMine = isMine;
         card.playerId = player.id;
-        card.position = index;
         cardDiv.classList.add('card');
         buildCard(cardDiv, card);
         playerDiv.append(cardDiv);
         cardEvent(cardDiv, card);
     });
+
+    scoreDiv.innerText = `Score: ${player.score}`;
+    playerDiv.append(scoreDiv);
 }
 
 function burnOneHandCardAction(card) {
@@ -185,10 +199,9 @@ function cardEvent(cardDiv, card) {
 }
 
 function buildCard(cardDiv, card) {
-    cardDiv.id = card?.id;
-
-    if (card?.position >= 0) {
-        cardDiv.innerText = card.position;
+    if (card?.id) {
+        cardDiv.id = card.id;
+        cardDiv.innerText = card.id;
     }
 
     if (card?.suit) { // todo use isFaceUp later ....
@@ -226,3 +239,23 @@ function buildGameBoard() {
 void function bootstrap() {
     // buildGameBoard();
 }();
+
+function clock() {
+    countdownNumberEl.textContent = String(Math.max(countdown, 0));
+    countdownNumberEl.style.color = countdown < 4 ? 'red' : countdown < 7 ? 'orange' : 'green';
+
+    if (--countdown < 0) {
+        return resetTimer();
+    }
+}
+
+function startTimer(timeMs) {
+    resetTimer();
+    countdown = (~~((timeMs + 999) / 1000)) - 1;
+    console.log(countdown, timeMs);
+    timer = setInterval(clock, 1000);
+}
+
+function resetTimer() {
+    clearInterval(timer);
+}

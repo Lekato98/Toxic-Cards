@@ -2,18 +2,13 @@ import { Card } from './card';
 import { CardStack } from './card-stack';
 import { Deck } from './deck';
 import { Player } from './player';
-import { Burn } from './state/burn';
-import { EndOfRound } from './state/end-of-round';
-import { BeginOfRound } from './state/begin-of-round';
 import { State, UserActionPayload } from './state/state';
-import { BeginOfTurn } from './state/begin-of-turn';
-import { EndOfTurn } from './state/end-of-turn';
-import { EndOfGame } from './state/end-of-game';
 import { Utils } from './utils';
 import { Event, GameSocketService } from '../socket/socket';
 import { BeginOfGame } from './state/begin-of-game';
 import { GameAction } from './game-action';
 import { GameConfig } from './game-config';
+import { BeginOfRound } from './state/begin-of-round';
 
 export class InvalidAction extends Error {
     constructor(message?: string) {
@@ -26,8 +21,8 @@ export class InvalidAction extends Error {
 export enum Action {
     // CREATE_GAME,
     START_GAME,
-    BEGIN_OF_ROUND,
-    BEGIN_OF_TURN,
+    START_ROUND,
+    START_TURN,
     JOIN_AS_PLAYER,
     JOIN_AS_SPECTATOR,
     DISTRIBUTE_CARD,
@@ -44,9 +39,9 @@ export enum Action {
     SHOW_ONE_OTHER_HAND_CARD,
     NEXT_TURN,
     PASS,
-    END_OF_TURN,
-    END_OF_ROUND,
-    END_OF_GAME,
+    END_TURN,
+    END_ROUND,
+    END_GAME,
     RESTART,
     LEAVE,
     // NO_ACTION,
@@ -66,6 +61,7 @@ export class Game {
     public readonly burnedCards: CardStack;
     public readonly pileOfCards: CardStack;
     public readonly action: GameAction;
+    public readonly BOT_TIMEOUT: number = 2000;
     public state: State;
     public passedBy: Player;
     public pickedCard: Card;
@@ -79,14 +75,14 @@ export class Game {
     // all actions that's will be called directly from game
     public readonly INTERNAL_BASED_ACTION = [
         Action.START_GAME,
-        Action.BEGIN_OF_ROUND,
-        Action.BEGIN_OF_TURN,
+        Action.START_ROUND,
+        Action.START_TURN,
         Action.DISTRIBUTE_CARD,
         Action.SELECT_FIRST_TURN,
         Action.BURN_CARD,
-        Action.END_OF_TURN,
-        Action.END_OF_ROUND,
-        Action.END_OF_GAME,
+        Action.END_TURN,
+        Action.END_ROUND,
+        Action.END_GAME,
         Action.NEXT_TURN,
     ];
     // all actions that's need to check isValidUser (real user)
@@ -95,6 +91,7 @@ export class Game {
         Action.JOIN_AS_SPECTATOR,
         Action.LEAVE,
     ];
+    public numberOfRounds: number;
     private readonly userPlayer: Map<number, Player>;
     private readonly userSpectator: Map<number, boolean>;
     private readonly jointType: Map<number, JoinType>;
@@ -113,6 +110,9 @@ export class Game {
         Action.PICK_CARD_FROM_PILE,
         Action.BURN_ONE_HAND_CARD,
     ];
+    private timeout: number;
+    private timeMs: number;
+    private timeoutStartDate: Date;
 
     constructor(gameConfigs: GameConfig, state: State, creatorId?: number) {
         const {
@@ -129,21 +129,24 @@ export class Game {
         this.userSpectator = new Map<number, boolean>();
         this.jointType = new Map<number, JoinType>();
         this.players = new Array<Player>(this.numberOfPlayers);
-        this.state = state;
         this.action = new GameAction(this);
         this.isGameStarted = false;
         this.pickedCard = null;
         this.passedBy = null;
         this.leader = creatorId ?? null;
+        this.numberOfRounds = 0;
+        this.timeoutStartDate = new Date();
 
         this.initializePlayers();
         if (!Utils.isNullOrUndefined(creatorId)) {
             this.joinAsPlayer(creatorId);
         }
+
+        this.setState(state);
     }
 
     public get numberOfUserPlayers(): number {
-        return this.userPlayer.size;
+        return this.players.filter((player) => !player.isBot).length;
     }
 
     public get numberOfSpectators(): number {
@@ -157,6 +160,7 @@ export class Game {
     public initializePlayers(): void {
         for (let id = 0; id < this.numberOfPlayers; ++id) {
             this.players[id] = new Player(id);
+            this.userPlayer.set(this.players[id].getUserId(), this.players[id]);
         }
     }
 
@@ -164,22 +168,13 @@ export class Game {
         this.leader = userId;
     }
 
-    public setState(state: State): void {
-        this.state = state;
-        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
-
-        if (this.state instanceof BeginOfRound) {
-            this.doAction(Action.BEGIN_OF_ROUND);
-        } else if (this.state instanceof Burn) {
-            this.doAction(Action.BURN_CARD);
-        } else if (this.state instanceof EndOfRound) {
-            this.doAction(Action.END_OF_ROUND);
-        } else if (this.state instanceof BeginOfTurn) {
-            this.doAction(Action.BEGIN_OF_TURN);
-        } else if (this.state instanceof EndOfTurn) {
-            this.doAction(Action.END_OF_TURN);
-        } else if (this.state instanceof EndOfGame) {
-            this.doAction(Action.END_OF_GAME);
+    public setState(state: State, withTimeout: boolean = false): void {
+        if (withTimeout) {
+            this.timeMs = (this.state === BeginOfRound.getInstance() ? 7000 : 0);
+            this.emitState();
+            this.setTimeout(() => this.setStateImmediately(state), this.timeMs);
+        } else {
+            this.setStateImmediately(state);
         }
     }
 
@@ -289,6 +284,7 @@ export class Game {
                 const player = this.userPlayer.get(userId);
                 player.markAsBot();
                 this.userPlayer.delete(userId);
+                this.userPlayer.set(player.getUserId(), player);
                 break;
 
             case JoinType.SPECTATOR:
@@ -352,9 +348,11 @@ export class Game {
             numberOfPlayers: this.numberOfUserPlayers,
             numberOfSpectators: this.numberOfSpectators,
             state: this.state.constructor.name,
+            timeMs: this.getTimeMs(),
             turn: this.turn,
             topBurnedCards: this.burnedCards.top?.toShow() ?? {},
             passedBy: this.passedBy?.id,
+            numberOfRounds: this.numberOfRounds,
             isGameStarted: this.isGameStarted,
         };
     }
@@ -374,7 +372,7 @@ export class Game {
     }
 
     public isUserTurn(userId: number): boolean {
-        return this.turn === this.userPlayer.get(userId).id;
+        return this.turn === this.userPlayer.get(userId)?.id;
     }
 
     public isLeader(userId: number): boolean {
@@ -405,9 +403,68 @@ export class Game {
         return this.jointType.has(userId);
     }
 
+    public setTimeout(cb: Function, timeMs: number, ...args): void {
+        this.clearTimeout();
+        this.timeoutStartDate = new Date(Date.now() + timeMs);
+        this.timeout = setTimeout(cb, timeMs, ...args);
+    }
+
+    public getCurrentPlayer(): Player {
+        return this.players[this.turn];
+    }
+
+    public clearTimeout(): void {
+        clearTimeout(this.timeout);
+        this.timeoutStartDate = new Date();
+        this.timeMs = 0;
+    }
+
+    public getRandomPlayerButNotCurrent(): Player {
+        const players = this.players.filter((player) => player.id !== this.turn);
+        const randomIndex = Utils.randomIndex(players);
+
+        return players[randomIndex];
+    }
+
+    private autoAction(): void {
+        try {
+            this.state.afkAction(this);
+            console.log('AFK Trigger');
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    private setStateImmediately(state: State): void {
+        this.state = state;
+        const player = this.getCurrentPlayer();
+
+        if (player?.isBot) {
+            console.log('AFK BOT');
+            this.timeMs = this.BOT_TIMEOUT;
+        } else {
+            console.log('AFK USER');
+            this.timeMs = this.state.timeMs;
+        }
+
+        this.setTimeout(() => this.autoAction(), this.timeMs);
+        this.emitState();
+    }
+
     private fixLeader(userId: number): void {
         if (userId === this.leader) {
             // @todo set new leader
+        }
+    }
+
+    private getTimeMs(): number {
+        return Math.max(this.timeoutStartDate.getTime() - new Date().getTime(), this.timeMs);
+    }
+
+    public emitState(): void {
+        GameSocketService.emitRoom(Event.UPDATE_STATE, this.id, this.getState());
+        if (this.state === BeginOfRound.getInstance()) {
+            this.players.forEach((player) => !player.handCards.isEmpty() && player.showTwoHandCards());
         }
     }
 }

@@ -167,7 +167,7 @@ describe('Test Game', () => {
         game.action.beginOfTurnAction = () => ({});
 
         expect(randomPlayer.handCards.isEmpty()).toBeTruthy();
-        game.doAction(Action.BEGIN_OF_ROUND);
+        game.doAction(Action.START_ROUND);
         expect(game.pileOfCards.getSize()).toBe(numberOfCardsInNormalSet - usersId.length * game.DEFAULT_NUMBER_OF_CARDS_PER_HAND);
         expect(randomPlayer.handCards.getSize()).toBe(game.DEFAULT_NUMBER_OF_CARDS_PER_HAND);
         expect(game.state).toBeInstanceOf(BeginOfTurn);
@@ -177,12 +177,12 @@ describe('Test Game', () => {
 
     test('User 1 trying to call an internal action BEGIN_OF_TURN', () => {
         const userId = game.turn;
-        const mock = () => game.doAction(Action.BEGIN_OF_TURN, {userId});
+        const mock = () => game.doAction(Action.START_TURN, {userId});
         expect(mock).toThrow(InvalidAction);
     });
 
     test('First Turn BEGIN_OF_TURN', () => {
-        game.doAction(Action.BEGIN_OF_TURN);
+        game.doAction(Action.START_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
@@ -246,7 +246,7 @@ describe('Test Game', () => {
         const tempMock = game.action.beginOfTurnAction;
         game.action.beginOfTurnAction = () => ({});
 
-        game.doAction(Action.END_OF_TURN);
+        game.doAction(Action.END_TURN);
         expect(game.turn).toEqual(currentTurn);
         expect(game.state).toBeInstanceOf(BeginOfTurn);
 
@@ -254,7 +254,7 @@ describe('Test Game', () => {
     });
 
     test('Second Turn in BEGIN_OF_TURN', () => {
-        game.doAction(Action.BEGIN_OF_TURN);
+        game.doAction(Action.START_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 
@@ -315,7 +315,7 @@ describe('Test Game', () => {
 
         game.action.endOfTurnAction = tempMock;
 
-        game.doAction(Action.END_OF_TURN);
+        game.doAction(Action.END_TURN);
         expect(game.state).toBeInstanceOf(PickBurn);
     });
 

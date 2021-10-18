@@ -36,11 +36,12 @@ export class GameAction {
     }
 
     public beginOfRoundAction() {
+        ++this.game.numberOfRounds;
         this.game.deck.shuffle();
         this.distributeCardsAction();
         this.showTwoHandCardsAction();
         this.game.nextTurn();
-        this.game.setState(BeginOfTurn.getInstance());
+        this.game.setState(BeginOfTurn.getInstance(), true);
     }
 
     public beginOfTurnAction(): void {
@@ -99,6 +100,10 @@ export class GameAction {
         }
 
         const player = this.game.getPlayerByUserId(userId);
+        if (player.handCards.isFull()) {
+            throw new InvalidAction('Hand cards is full!');
+        }
+
         if (!this.game.isValidPlayerCard(player.id, cardId)) {
             throw new InvalidAction('Invalid picked card');
         }
@@ -116,8 +121,9 @@ export class GameAction {
     }
 
     public useAbilityAction(): void {
-        const cardAbility = this.game.pickedCard.getAbility();
-        this.game.pickedCard.markAsUsed();
+        const pickedCard = this.game.pickedCard;
+        const cardAbility = pickedCard.getAbility();
+        pickedCard.markAsUsed();
         switch (cardAbility) {
             case CardAbility.EXCHANGE_HAND_WITH_OTHER:
                 return this.game.setState(ExchangeHandWithOther.getInstance());

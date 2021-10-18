@@ -1,4 +1,4 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
@@ -9,8 +9,10 @@ interface ShowOneOtherHandCardActionPayload extends UserActionPayload {
 
 export class ShowOneOtherHandCard implements State {
     private static instance: ShowOneOtherHandCard;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 5000;
     }
 
     public static getInstance(): ShowOneOtherHandCard {
@@ -19,6 +21,24 @@ export class ShowOneOtherHandCard implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        // @todo maybe move logic to getActionWithOtherRandomPayload
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        const card = player.getRandomCard();
+        const cardId = card.id;
+        const otherPlayer = context.getRandomPlayerButNotCurrent();
+        const otherPlayerId = otherPlayer.id;
+        const otherCard = otherPlayer.getRandomCard();
+        const otherCardId = otherCard.id;
+        context.doAction(Action.SHOW_ONE_HAND_CARD, {
+            userId,
+            cardId,
+            otherPlayerId,
+            otherCardId,
+        });
     }
 
     public action(context: GameAction, action: Action, payload?: ShowOneOtherHandCardActionPayload): void {

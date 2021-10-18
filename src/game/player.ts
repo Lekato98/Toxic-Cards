@@ -7,10 +7,10 @@ export class Player {
     public readonly id: number;
     public handCards: CardHand;
     public isBot: boolean;
+    // if player reach -100 score or left the game
     // or if the game start and there is missing players
     public isOut: boolean;
     private currentScore: number;
-    // if player reach -100 score or left the game
     private totalScore: number;
     private userId: number;
 
@@ -18,6 +18,7 @@ export class Player {
         this.id = id;
         this.handCards = new CardHand();
         this.isOut = false;
+        this.userId = Utils.randomInteger(1e9);
         this.resetCurrentScore();
         this.resetTotalScore();
 
@@ -53,7 +54,7 @@ export class Player {
     }
 
     public markAsBot(): void {
-        this.userId = null;
+        this.userId = Utils.randomInteger(1e9);
         this.isBot = true;
     }
 
@@ -97,6 +98,11 @@ export class Player {
 
     public hasCard(cardId: string): boolean {
         return this.handCards.contains(cardId);
+    }
+
+    public getRandomCard(): Card {
+        const randomIndex = Utils.randomInteger(this.handCards.getSize());
+        return this.handCards.getCardByOrder(randomIndex);
     }
 
     public reset(): void {

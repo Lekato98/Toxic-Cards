@@ -1,4 +1,4 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
@@ -8,8 +8,10 @@ interface PickBurnPayload extends UserActionPayload {
 
 export class PickBurn implements State {
     private static instance: PickBurn;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 10000;
     }
 
     public static getInstance(): PickBurn {
@@ -18,6 +20,12 @@ export class PickBurn implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        context.doAction(Action.PICK_CARD_FROM_PILE, {userId});
     }
 
     public action(context: GameAction, action: Action, payload?: PickBurnPayload): void {

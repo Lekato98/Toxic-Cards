@@ -1,4 +1,4 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
@@ -10,8 +10,10 @@ interface ExchangeHandWithOtherActionPayload extends UserActionPayload {
 
 export class ExchangeHandWithOther implements State {
     private static instance: ExchangeHandWithOther;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 5000;
     }
 
     public static getInstance(): ExchangeHandWithOther {
@@ -20,6 +22,23 @@ export class ExchangeHandWithOther implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        const card = player.getRandomCard();
+        const cardId = card.id;
+        const otherPlayer = context.getRandomPlayerButNotCurrent();
+        const otherPlayerId = otherPlayer.id;
+        const otherCard = otherPlayer.getRandomCard();
+        const otherCardId = otherCard.id;
+        context.doAction(Action.EXCHANGE_PICK_WITH_HAND, {
+            userId,
+            cardId,
+            otherPlayerId,
+            otherCardId,
+        });
     }
 
     public action(context: GameAction, action: Action, payload?: ExchangeHandWithOtherActionPayload): void {

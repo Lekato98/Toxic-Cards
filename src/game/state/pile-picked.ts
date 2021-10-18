@@ -1,4 +1,4 @@
-import { Action, InvalidAction } from '../game';
+import { Action, Game, InvalidAction } from '../game';
 import { State, UserActionPayload } from './state';
 import { GameAction } from '../game-action';
 
@@ -8,8 +8,10 @@ interface PilePickedPayload extends UserActionPayload {
 
 export class PilePicked implements State {
     private static instance: PilePicked;
+    public timeMs: number;
 
     private constructor() {
+        this.timeMs = 10000;
     }
 
     public static getInstance(): PilePicked {
@@ -18,6 +20,17 @@ export class PilePicked implements State {
         }
 
         return this.instance;
+    }
+
+    public afkAction(context: Game) {
+        const player = context.getCurrentPlayer();
+        const userId = player.getUserId();
+        const card = player.getRandomCard();
+        const cardId = card.id;
+        context.doAction(Action.EXCHANGE_PICK_WITH_HAND, {
+            userId,
+            cardId,
+        });
     }
 
     public action(context: GameAction, action: Action, payload?: PilePickedPayload): void {

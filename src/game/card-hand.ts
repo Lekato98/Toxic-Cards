@@ -2,6 +2,7 @@ import { Card } from './card';
 
 export class CardHand {
     private readonly cards: Array<Card>;
+    private readonly MAX_SIZE = 8;
 
     constructor() {
         this.cards = new Array<Card>();
@@ -59,5 +60,9 @@ export class CardHand {
 
     public isEmpty(): boolean {
         return this.getSize() === 0;
+    }
+
+    public isFull(): boolean {
+        return this.getSize() === this.MAX_SIZE;
     }
 }
