@@ -31,4 +31,3 @@ void function bootstrap(app: Express): void {
     GameSocketService.init(io);
     server.listen(config.PORT, () => console.log(`server listening to *:${ config.PORT }`));
 }(app);
-
