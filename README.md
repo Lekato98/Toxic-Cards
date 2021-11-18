@@ -50,5 +50,3 @@ Navigate to `http://localhost:3000`
 
 - [Hamza Farhan](mailto:hamzafarhan11@gmail.com)
 - [Ahmad Nawawi](mailto:ahmadwaelnawawi123@gmail.com)
-
-
