@@ -1,21 +1,21 @@
-import { BeginOfRound } from './state/begin-of-round';
-import { BeginOfTurn } from './state/begin-of-turn';
-import { EndOfRound } from './state/end-of-round';
-import { PickBurn } from './state/pick-burn';
-import { Player } from './player';
-import { Utils } from './utils';
-import { Event, GameSocketService } from '../socket/socket';
-import { PilePicked } from './state/pile-picked';
-import { BurnedPicked } from './state/burned-picked';
-import { EndOfTurn } from './state/end-of-turn';
-import { CardAbility, CardUtil } from './card';
-import { ExchangeHandWithOther } from './state/exchange-hand-with-other';
-import { ShowOneHandCard } from './state/show-one-hand-card';
-import { ShowOneOtherHandCard } from './state/show-one-other-hand-card';
-import { Burn } from './state/burn';
-import { EndOfGame } from './state/end-of-game';
-import { BeginOfGame } from './state/begin-of-game';
-import { Game, InvalidAction } from './game';
+import {BeginOfRound} from './state/begin-of-round';
+import {BeginOfTurn} from './state/begin-of-turn';
+import {EndOfRound} from './state/end-of-round';
+import {PickBurn} from './state/pick-burn';
+import {Player} from './player';
+import {Utils} from './utils';
+import {Event, GameSocketService} from '../socket/socket';
+import {PilePicked} from './state/pile-picked';
+import {BurnedPicked} from './state/burned-picked';
+import {EndOfTurn} from './state/end-of-turn';
+import {CardAbility, CardUtil} from './card';
+import {ExchangeHandWithOther} from './state/exchange-hand-with-other';
+import {ShowOneHandCard} from './state/show-one-hand-card';
+import {ShowOneOtherHandCard} from './state/show-one-other-hand-card';
+import {Burn} from './state/burn';
+import {EndOfGame} from './state/end-of-game';
+import {BeginOfGame} from './state/begin-of-game';
+import {Game, InvalidAction} from './game';
 
 export class GameAction {
     private game: Game;
@@ -241,5 +241,6 @@ export class GameAction {
     public endOfGameAction() {
         this.game.resetGame();
         this.game.setState(BeginOfGame.getInstance());
+        GameSocketService.emitRoom(Event.END_GAME_SOUND, this.game.id);
     }
 }

@@ -7,6 +7,7 @@ const joinGameBtn = document.querySelector('#join-game');
 const joinQueueBtn = document.querySelector('#join-queue');
 const startGameBtn = document.querySelector('#start-game');
 const sounds = document.querySelector('#sounds');
+const endSound = document.querySelector('#end-sound');
 const soundBtn = document.querySelector('#sound');
 let currentState = '';
 let pickedCard = null;
@@ -44,6 +45,7 @@ const Event = Object.freeze({
     UPDATE_STATE: 'update_state',
     RECONNECT: 'reconnect',
     SOUND: 'sound',
+    END_GAME_SOUND: 'end_game_sound',
     ERROR: 'error',
     DISCONNECT: 'disconnect',
 });
@@ -161,10 +163,18 @@ function emitSound() {
     });
 }
 
+function endSoundHandler() {
+    sounds.pause();
+    endSound.src = '/sounds/win.mp3';
+    endSound.load();
+    endSound.play();
+}
+
 gameClient.on(Event.UPDATE_STATE, updateState);
 gameClient.on(Event.ERROR, errorHandler);
 gameClient.on(Event.PONG, pongHandler);
 gameClient.on(Event.SOUND, soundHandler);
+gameClient.on(Event.END_GAME_SOUND, endSoundHandler);
 gameClient.on(Event.STATUS, (payload) => {
     if (payload.firstCard) {
         setTimeout(() => {
