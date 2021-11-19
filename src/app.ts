@@ -31,8 +31,8 @@ void function bootstrap(app: Express): void {
     const io: Server = new Server(server, ioConfig);
     GameSocketService.init(io);
     server.listen(config.PORT, () => console.log(`server listening to *:${ config.PORT }`));
-}(app);
 
-if (config.NODE_ENV === 'production') {
-    console.log = (...args) => {};
-}
+    if (config.NODE_ENV === 'production') {
+        console.log = (...args) => {};
+    }
+}(app);
