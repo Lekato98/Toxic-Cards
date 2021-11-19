@@ -21,7 +21,7 @@ app.get('/', (req: Request, res: Response) => {
         DYNAMIC_ENDPOINT:
             config.NODE_ENV === 'production' ?
                 // 'http://toxic-cards.fun' :
-                'http://18.194.1.179/' :
+                'http://18.185.111.226/' :
                 `127.0.0.1:${ config.PORT }`,
     });
 });
