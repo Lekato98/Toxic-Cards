@@ -21,8 +21,8 @@ app.get('/', (req: Request, res: Response) => {
         DYNAMIC_ENDPOINT:
             config.NODE_ENV === 'production' ?
                 // 'http://toxic-cards.fun' :
-                'http://18.185.111.226/' :
-                `127.0.0.1:${ config.PORT }`,
+                'http://18.185.111.226' :
+                `http://localhost:${ config.PORT }`,
     });
 });
 
@@ -32,3 +32,7 @@ void function bootstrap(app: Express): void {
     GameSocketService.init(io);
     server.listen(config.PORT, () => console.log(`server listening to *:${ config.PORT }`));
 }(app);
+
+if (config.NODE_ENV === 'production') {
+    console.log = (...args) => {};
+}
