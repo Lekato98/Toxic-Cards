@@ -34,5 +34,6 @@ void function bootstrap(app: Express): void {
 
     if (config.NODE_ENV === 'production') {
         console.log = (...args) => {};
+        console.error = (...args) => {};
     }
 }(app);
