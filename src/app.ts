@@ -20,8 +20,7 @@ app.get('/', (req: Request, res: Response) => {
     res.render('index', {
         DYNAMIC_ENDPOINT:
             config.NODE_ENV === 'production' ?
-                // 'http://toxic-cards.fun' :
-                'http://18.185.111.226' :
+                'http://toxic-cards.fun' :
                 `http://localhost:${ config.PORT }`,
     });
 });
