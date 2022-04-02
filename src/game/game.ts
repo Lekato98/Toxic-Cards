@@ -52,7 +52,7 @@ export enum JoinType {
     SPECTATOR = 'spectator',
 }
 
-// @todo add resetRound&resetTurn&resetGame and maybe bot them in onBegin not onEnd
+// @todo add resetRound&resetTurn&resetGame and maybe put them in onBegin not onEnd
 export class Game {
     private static autoIncrementCounter: number = 0;
     public readonly id: number;
