@@ -5,6 +5,7 @@ import * as os from 'os';
 dotenv.config({path: path.join(__dirname, '.env')});
 
 const ip4 = os.networkInterfaces()['Loopback Pseudo-Interface 1']?.[1]?.address ?? 'toxic-cards.fun';
+console.log(os.networkInterfaces())
 
 export const ioConfig = {
     cors: {
