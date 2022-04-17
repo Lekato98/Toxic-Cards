@@ -10,3 +10,4 @@ services:
     environment:
       PORT: 3000
       NODE_ENV: production
+      IO_PORT: 80

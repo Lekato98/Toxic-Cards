@@ -18,10 +18,7 @@ app.set('views', path.join(__dirname, '/public/views'));
 app.set('view engine', 'ejs');
 app.get('/', (req: Request, res: Response) => {
     res.render('index', {
-        DYNAMIC_ENDPOINT:
-            config.NODE_ENV === 'production' ?
-                'http://toxic-cards.fun' :
-                `http://localhost:${ config.PORT }`,
+        DYNAMIC_ENDPOINT: `${config.IP4}:${config.IO_PORT}`,
     });
 });
 
