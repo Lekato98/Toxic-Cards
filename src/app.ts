@@ -9,6 +9,7 @@ import * as path from 'path';
 // import * as helmet from 'helmet';
 
 const app: Express = express();
+const isProd: boolean = config.NODE_ENV === 'production';
 
 app.use(cors());
 // @todo give access for socket.io cdn
@@ -18,7 +19,7 @@ app.set('views', path.join(__dirname, '/public/views'));
 app.set('view engine', 'ejs');
 app.get('/', (req: Request, res: Response) => {
     res.render('index', {
-        DYNAMIC_ENDPOINT: `${config.IP4}:${config.IO_PORT}`,
+        DYNAMIC_ENDPOINT: isProd ? `${config.IP4}:${config.IO_PORT}` : `localhost:${config.IO_PORT}`,
     });
 });
 
@@ -28,7 +29,7 @@ void function bootstrap(app: Express): void {
     GameSocketService.init(io);
     server.listen(config.PORT, () => console.log(`server listening to *:${ config.PORT }`));
 
-    if (config.NODE_ENV === 'production') {
+    if (isProd) {
         console.log = (...args) => {};
         console.error = (...args) => {};
     }

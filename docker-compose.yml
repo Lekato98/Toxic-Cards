@@ -1,13 +1,14 @@
 version: "3"
 services:
   server:
-    image: local/toxic-cards
+    image: prod/toxic-cards
+    container_name: toxic_card_prod_server
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "80:3000"
+      - "80:3080"
     environment:
-      PORT: 3000
+      PORT: 3080
       NODE_ENV: production
       IO_PORT: 80

@@ -1,0 +1,14 @@
+version: "3"
+services:
+  server:
+    image: devo/toxic-cards
+    container_name: toxic_card_devo_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: devo
+      IO_PORT: 3000
