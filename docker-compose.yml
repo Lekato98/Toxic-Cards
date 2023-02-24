@@ -1,7 +1,7 @@
 version: "3"
 services:
   server:
-    image: prod/toxic-cards
+    image: lekato/toxic-cards
     container_name: toxic_card_prod_server
     build:
       context: .
@@ -11,4 +11,4 @@ services:
     environment:
       PORT: 3080
       NODE_ENV: production
-      IO_PORT: 80
+      IO_PORT: 3080

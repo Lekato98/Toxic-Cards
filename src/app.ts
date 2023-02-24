@@ -19,7 +19,9 @@ app.set('views', path.join(__dirname, '/public/views'));
 app.set('view engine', 'ejs');
 app.get('/', (req: Request, res: Response) => {
     res.render('index', {
-        DYNAMIC_ENDPOINT: isProd ? `${config.IP4}:${config.IO_PORT}` : `localhost:${config.IO_PORT}`,
+        DYNAMIC_ENDPOINT: isProd ? 
+        config.ENDPOINT ?? `${config.IP4}:${config.IO_PORT}` :
+         `localhost:${config.IO_PORT}`,
     });
 });
 

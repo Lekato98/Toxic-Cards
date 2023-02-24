@@ -20,5 +20,6 @@ export const config = {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
     IO_PORT: process.env.IO_PORT,
+    ENDPOINT: process.env.ENDPOINT,
     IP4: String(ip4),
 };
